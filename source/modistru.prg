@@ -1,4 +1,5 @@
-/*
+/*  $Id: $
+ *
  * dbc_SQLite - SQLite database manager
  * Table structure handling, based on dbchw ( Hwgui utility for dbf management )
  *

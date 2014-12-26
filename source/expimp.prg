@@ -1,4 +1,5 @@
-/*
+/*  $Id: $
+ *
  * dbc_SQLite - SQLite database manager
  * Export / import
  *

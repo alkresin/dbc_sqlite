@@ -1,4 +1,4 @@
-
+/*  $Id: $
 /*
  * dbc_SQLite - SQLite database manager
  * Autocompletition routines

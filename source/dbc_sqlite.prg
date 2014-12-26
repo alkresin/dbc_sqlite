@@ -1,4 +1,5 @@
-/*
+/*  $Id: $
+ *
  * dbc_SQLite - SQLite database manager
  * Copyright 2014 Alexander Kresin <alex@kresin.ru>
  * www - http://www.kresin.ru

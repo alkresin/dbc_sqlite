@@ -1,4 +1,5 @@
-/*
+/*  $Id: $
+ *
  * dbc_SQLite - SQLite database manager
  * HBrwTable class - browse of a table
  *
