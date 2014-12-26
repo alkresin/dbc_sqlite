@@ -1,0 +1,11 @@
+# 'install'-ed binaries
+*.exe
+*.dll
+*.so
+*.lib
+*.a
+*.o
+*.obj
+
+*.ini
+*.his
