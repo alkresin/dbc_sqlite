@@ -1,0 +1,9 @@
+/* $Id:  $ */
+
+2014-12-26 18:45 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
+  * source/autocmpl.prg
+  * source/dbc_sqlite.prg
+  * source/expimp.prg
+  * source/hbrwtbl.prg
+  * source/modistru.prg
+    * Initial commit
