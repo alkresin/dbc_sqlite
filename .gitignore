@@ -1,4 +1,6 @@
-# 'install'-ed binaries
+
+bin/*
+
 *.exe
 *.dll
 *.so
@@ -6,6 +8,3 @@
 *.a
 *.o
 *.obj
-
-*.ini
-*.his
