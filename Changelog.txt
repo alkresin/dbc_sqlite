@@ -1,5 +1,14 @@
 /* $Id:  $ */
 
+2014-12-27 17:00 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
+  * source/dbc_sqlite.prg
+    * Optional query preview (for 'save row' action) added to EditRow()
+  * source/expimp.prg
+    * Function added: Blob2Hex( cBlob )
+    ! Dump fixed for blob fields
+  * source/hbrwtbl.prg
+    ! Small fix
+
 2014-12-26 18:45 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
   * source/autocmpl.prg
   * source/dbc_sqlite.prg

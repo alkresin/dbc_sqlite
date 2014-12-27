@@ -313,12 +313,13 @@ STATIC FUNCTION dbNew()
 
 FUNCTION dbOpen( cFile )
 
-   LOCAL oDlg
+   LOCAL oDlg, oGet
    LOCAL lExcl := _lExcl , lRd := _lRd
    LOCAL bFileBtn := { ||
-
-   cFile := hwg_Selectfile( "( *.* )", "*.*", cCurrPath )
-   hwg_RefreshAllGets( oDlg )
+   IF Empty( cFile := hwg_Selectfile( "( *.* )", "*.*", cCurrPath ) )
+      cFile := ""
+   ENDIF
+   oGet:Refresh()
 
    RETURN .T.
    }
@@ -330,7 +331,7 @@ FUNCTION dbOpen( cFile )
 
    @ 10, 34 SAY "File name: " SIZE 80, 24 STYLE SS_RIGHT
 
-   @ 90, 34 GET cFile SIZE 220, 24 PICTURE "@S128" STYLE ES_AUTOHSCROLL
+   @ 90, 34 GET oGet VAR cFile SIZE 220, 24 PICTURE "@S128" STYLE ES_AUTOHSCROLL
    Atail( oDlg:aControls ):Anchor := ANCHOR_TOPABS + ANCHOR_LEFTABS + ANCHOR_RIGHTABS
    @ 310, 30 BUTTON "Browse" SIZE 80, 32 ON CLICK bFileBtn ON SIZE ANCHOR_RIGHTABS
 
@@ -860,7 +861,8 @@ STATIC FUNCTION SetOpt()
 
 STATIC FUNCTION EditRow( lNew )
 
-   LOCAL oDlg, oBtn1, oBtn2, oBtnSave, oLine, aCtrl, nControls, nSel := 0, nFirst := 1
+   LOCAL oDlg, oBtn1, oBtn2, oBtnSave, oLine, oDlgPreview, oEditPreview
+   LOCAL lSavePreview := .F., aCtrl, nControls, nSel := 0, nFirst := 1, cQ
    LOCAL i, af, nCCount, aData, nTable := oBrw2:cargo, stmt
    LOCAL at := { "integer", "real", "text", "blob", "null", "" }
    LOCAL bFocus := {|o,id|
@@ -976,7 +978,7 @@ STATIC FUNCTION EditRow( lNew )
       RETURN Nil
    }
    LOCAL bSave := {||
-      LOCAL i1, cQ, cv, cVal, nRes, n, s, l := .F.
+      LOCAL i1, cv, cVal, nRes, n, s, l := .F.
       IF lNew
          cQ := "INSERT INTO " + oDb:aTables[nTable,1] + " ("
          cv := " VALUES ("
@@ -1020,20 +1022,36 @@ STATIC FUNCTION EditRow( lNew )
       ELSE
          cQ += oBq:KeyWhere( oBrw2:aArray[oBrw2:nCurrent] )
       ENDIF
-      sqlite3_exec( oDb:dbHandle, cQ )
-      IF ( nRes := sqlite3_errcode( oDb:dbHandle ) ) == SQLITE_OK .OR. nRes == SQLITE_DONE
-         hwg_MsgInfo( hb_ntos( sqlite3_changes( oDb:dbHandle ) ), "The number of rows changed" )
-         IF !lNew
-            FOR i1 := 1 TO nCCount
-               IF !Empty( aData[i1,3] )
-                  oBq:SetCell( i1, aData[i1,1], aData[i1,2] )
-               ENDIF
-            NEXT
-            oBrw2:Refresh()
+      IF lSavePreview
+         INIT DIALOG oDlgPreview TITLE "Save query" AT 100, 100 SIZE 400, 200 FONT HWindow():GetMain():oFont
+         oEditPreview := HCEdit():New( ,,, 10, 10, 380, 120, _oFont,, ANCHOR_TOPABS + ANCHOR_BOTTOMABS + ANCHOR_LEFTABS + ANCHOR_RIGHTABS )
+         oEditPreview:SetWrap( .T. )
+         SetHili( oEditPreview )
+         oEditPreview:SetText( cQ )
+
+         @ 50, 150 BUTTON "Run" SIZE 100, 30 ON CLICK { ||oDlgPreview:lResult := .T., cQ := oEditPreview:GetText(), hwg_EndDialog() }
+         @ 250, 150 BUTTON "Cancel" SIZE 100, 30 ON CLICK { ||hwg_EndDialog() }
+         ACTIVATE DIALOG oDlgPreview
+         IF !oDlgPreview:lResult
+            cQ := ""
          ENDIF
-         hwg_EndDialog()
-      ELSE
-         hwg_MsgStop( sqlite3_errmsg(oDb:dbHandle), "Error " + Ltrim(Str(nRes)) )
+      ENDIF
+      IF !Empty( cQ )
+         sqlite3_exec( oDb:dbHandle, cQ )
+         IF ( nRes := sqlite3_errcode( oDb:dbHandle ) ) == SQLITE_OK .OR. nRes == SQLITE_DONE
+            hwg_MsgInfo( hb_ntos( sqlite3_changes( oDb:dbHandle ) ), "The number of rows changed" )
+            IF !lNew
+               FOR i1 := 1 TO nCCount
+                  IF !Empty( aData[i1,3] )
+                     oBq:SetCell( i1, aData[i1,1], aData[i1,2] )
+                  ENDIF
+               NEXT
+               oBrw2:Refresh()
+            ENDIF
+            hwg_EndDialog()
+         ELSE
+            hwg_MsgStop( sqlite3_errmsg(oDb:dbHandle), "Error " + Ltrim(Str(nRes)) )
+         ENDIF
       ENDIF
       RETURN Nil
    }
@@ -1090,6 +1108,7 @@ STATIC FUNCTION EditRow( lNew )
       Eval( bCreate, i )
    NEXT
 
+   @ 20,448 GET CHECKBOX lSavePreview CAPTION "" SIZE 16, 24 TOOLTIP "Preview SQL query"
    @ 40,448 BUTTON oBtnSave CAPTION "Save" SIZE 80, 28 TOOLTIP "Save changes" ON CLICK bSave ON SIZE ANCHOR_BOTTOMABS + ANCHOR_LEFTABS
    @ 210,448 BUTTON "< Row" SIZE 80, 28 TOOLTIP "Previous row" ON CLICK {||.t.} ON SIZE ANCHOR_BOTTOMABS + ANCHOR_LEFTABS
    @ 310,448 BUTTON "Row >" SIZE 80, 28 TOOLTIP "Next row" ON CLICK {||.t.} ON SIZE ANCHOR_BOTTOMABS + ANCHOR_RIGHTABS
@@ -1195,7 +1214,6 @@ METHOD GetObjects( cType, cTblName ) CLASS HSQLT
    ASize( arr, Len(arr)-1 )
 
    Return arr
-
 
 STATIC FUNCTION FontFromXML( oXmlNode )
 

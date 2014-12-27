@@ -19,7 +19,7 @@ FUNCTION AutoDop( oEdit, nKey, nCtrl, oDb )
    LOCAL aCreate := { "index", "table", "trigger", "view", "virtual table" }
    LOCAL aDrop := { "index", "table", "trigger", "view" }
 
-   IF nKey != VK_TAB .OR. n_event == 1
+   IF nKey != VK_TAB
       RETURN -1
    ENDIF
 

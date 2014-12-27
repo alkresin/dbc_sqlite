@@ -69,7 +69,7 @@ FUNCTION dbDump( oDb )
 
                SWITCH nCType
                CASE SQLITE_BLOB
-                  cLine += "x'" + sqlite3_column_text( stmt, j ) + "'"
+                  cLine += "x'" + Blob2Hex( sqlite3_column_text( stmt, j ) ) + "'"
                   EXIT
                CASE SQLITE_INTEGER
                   cLine += Ltrim( Str( sqlite3_column_int( stmt, j ) ) )
@@ -97,3 +97,14 @@ FUNCTION dbDump( oDb )
    FClose( han )
 
    RETURN Nil
+
+FUNCTION Blob2Hex( cBlob )
+LOCAL i, nLen := Len( cBlob ), n, n1, n2, s := ""
+
+   FOR i := 1 TO nLen
+      n := Asc( Substr( cBlob,i,1 ) )
+      n1 := Int( n/16 )
+      n2 := n % 16
+      s += Chr( Iif(n1<10,n1+48,n1+55) ) + Chr( Iif(n2<10,n2+48,n2+55) )
+   NEXT
+   RETURN s

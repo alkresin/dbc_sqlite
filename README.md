@@ -16,7 +16,8 @@ what data are contained in these tables. The indexes, views and triggers are a s
 type of a database contents and I don't want to see them immedeately after the database
 is opened for they do not distract attention from the main. I need only to have the
 possibility to look at them separately, if this will be necessary.
-   Thirdly, at the moment I begin to develop it, most of existing tools didn't included
-support of some new features. For example, they didn't open databases, which had tables
+   Thirdly, at the moment I begin to develop it (December 2014), most of existing tools didn't include
+support of some new sqlite features. For example, they didn't open databases, which had tables
 "WITHOUT ROWID" at all!
    And, at least, I want to have a possibility to add any feature when I will need it.
+

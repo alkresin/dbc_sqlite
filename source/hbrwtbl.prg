@@ -13,6 +13,8 @@
 
 #define QUE_TEXT_MAX       72
 
+Memvar nLimitText
+
 CLASS HBrwTable
 
    DATA oBrw, oSayNum
