@@ -1,9 +1,9 @@
-SQLite database manager
+## dbc_SQLite - SQLite database manager
 
-Development tools used: Harbour + HwGUI.
+Development tools used: Harbour + hbSQLit3 + HwGUI.
   Unicode version of HwGUI is needed to be possible to view and edit non-latin symbols.
 
-Preface.
+### Preface
 
 There is a number of a tools to manage SQLite databases, so the first question is:
   Why to develop yet another ?
@@ -21,3 +21,4 @@ support of some new sqlite features. For example, they didn't open databases, wh
 "WITHOUT ROWID" at all!
    And, at least, I want to have a possibility to add any feature when I will need it.
 
+### Installation notes

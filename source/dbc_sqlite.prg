@@ -861,19 +861,29 @@ STATIC FUNCTION SetOpt()
 
 STATIC FUNCTION EditRow( lNew )
 
-   LOCAL oDlg, oBtn1, oBtn2, oBtnSave, oLine, oDlgPreview, oEditPreview
+   LOCAL oDlg, oBtn1, oBtn2, oBtnNull, oBtnSave, oLine, oDlgPreview, oEditPreview
    LOCAL lSavePreview := .F., aCtrl, nControls, nSel := 0, nFirst := 1, cQ
    LOCAL i, af, nCCount, aData, nTable := oBrw2:cargo, stmt
    LOCAL at := { "integer", "real", "text", "blob", "null", "" }
+   LOCAL bSetNull := {||
+      LOCAL n
+      IF nSel > 0
+         n := nFirst + nSel -1
+         aCtrl[n,3]:SetText( "(NULL)" )
+         aData[n,2] := SQLITE_NULL
+         aCtrl[n,2]:SetText( "("+at[aData[n,2]]+")" )
+      ENDIF
+      RETURN Nil
+   }
    LOCAL bFocus := {|o,id|
       LOCAL oEdit := o:FindControl(id), n, s
       IF nSel > 0
          n := nFirst + nSel -1
          aCtrl[nSel,1]:SetText( af[n,1]+"  " )
          aCtrl[nSel,1]:SetColor( 0,,.T. )
+         aCtrl[nSel,2]:SetColor( 0,,.T. )
          IF !( ( s := aCtrl[nSel,3]:GetText() ) == aData[n,1] )
             aData[n,1] := s
-            aData[n,2] := aCtrl[n,2]:GetValue()
             aData[n,3] := .T.
          ENDIF
       ENDIF
@@ -881,11 +891,9 @@ STATIC FUNCTION EditRow( lNew )
       n := nFirst + nSel -1
       aCtrl[nSel,1]:SetText( af[n,1]+" >" )
       aCtrl[nSel,1]:SetColor( CLR_GREEN,,.T. )
+      aCtrl[nSel,2]:SetColor( CLR_GREEN,,.T. )
+      hwg_Enablewindow( oBtnNull:handle, !af[n,4] )
       RETURN Nil
-   }
-   LOCAL bComboChg := {|o,id|
-      LOCAL oCombo := o:FindControl(id)
-      RETURN .T.
    }
    LOCAL bButtons := {|o,l|
       hwg_Enablewindow( oBtn1:handle, (nFirst > 1) )
@@ -899,8 +907,7 @@ STATIC FUNCTION EditRow( lNew )
       LOCAL j1 := nFirst + i1 -1
       aCtrl[i1] := { Nil, Nil, Nil }
       @ 10, 40 + (i1-1)*56 SAY aCtrl[i1,1] CAPTION af[j1,1]+"  " SIZE 110,24 STYLE SS_RIGHT
-      @ 10, 64 + (i1-1)*56 COMBOBOX aCtrl[i1,2] ITEMS at INIT aData[j1,2] SIZE 100, 26 ;
-         DISPLAYCOUNT 6 ON CHANGE bComboChg
+      @ 10, 64 + (i1-1)*56 SAY aCtrl[i1,2] CAPTION "("+at[aData[j1,2]]+")" SIZE 110, 24 STYLE SS_RIGHT
       @ 120,40 + (i1-1)*56 EDITBOX aCtrl[i1,3] CAPTION aData[j1,1] SIZE 470,52 STYLE ES_MULTILINE ;
          FONT _oFont ON SIZE ANCHOR_LEFTABS + ANCHOR_RIGHTABS ON GETFOCUS bFocus
       aCtrl[i1,3]:cargo := i1
@@ -909,7 +916,7 @@ STATIC FUNCTION EditRow( lNew )
    LOCAL bSet := {|i1|
       LOCAL j1 := nFirst + i1 -1
       aCtrl[i1,1]:SetText( af[j1,1]+"  " )
-      aCtrl[i1,2]:SetItem( aData[j1,2] )
+      aCtrl[i1,2]:SetText( "("+at[aData[j1,2]]+")" )
       aCtrl[i1,3]:SetText( aData[j1,1] )
       RETURN Nil
    }
@@ -989,7 +996,6 @@ STATIC FUNCTION EditRow( lNew )
          n := nFirst + nSel -1
          IF !( ( s := aCtrl[nSel,3]:GetText() ) == aData[n,1] )
             aData[n,1] := s
-            aData[n,2] := aCtrl[n,2]:GetValue()
             aData[n,3] := .T.
          ENDIF
       ENDIF
@@ -1097,6 +1103,7 @@ STATIC FUNCTION EditRow( lNew )
    @ 4, 4 BUTTON oBtn1 CAPTION "<" SIZE 28, 28 TOOLTIP "Page Up" ON CLICK bPrev
    @ 32, 4 BUTTON oBtn2 CAPTION ">" SIZE 28, 28 TOOLTIP "Page Down" ON CLICK bNext
    @ 64, 2 LINE LENGTH 32 VERTICAL
+   @ 68, 4 BUTTON oBtnNull CAPTION "U" SIZE 28, 28 TOOLTIP "Set NULL" ON CLICK bSetNull
 
    @ 4, 36 LINE LENGTH 582 ON SIZE ANCHOR_TOPABS + ANCHOR_LEFTABS + ANCHOR_RIGHTABS
    @ 4, 440 LINE oLine LENGTH 582 ON SIZE ANCHOR_BOTTOMABS + ANCHOR_LEFTABS + ANCHOR_RIGHTABS
