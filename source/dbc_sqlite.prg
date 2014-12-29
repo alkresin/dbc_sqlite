@@ -49,7 +49,7 @@
 
 REQUEST HB_CODEPAGE_UTF8
 
-STATIC cAppName := "dbc_SQLite", cExePath
+STATIC cAppName := "dbc_SQLite", cExePath, cNull := "(NULL)"
 STATIC cCurrPath := "", oEditQ, oPanel, oSayNum, oBtnEd, oBrw1, oBrw2, oDb, oBq
 Memvar _lOptChg, _oFont, _lExcl, _lRd, _aRecent, _lHisChg, _aHistory, nLimitText
 
@@ -407,7 +407,7 @@ STATIC FUNCTION ShowTable( nTable )
    oBrw2:aArray := {}
    oBrw2:cargo := nTable
 
-   oBq := HBrwTable():New( oDb:dbHandle, oDb:aTables[nTable,1], oBrw2, oSayNum )
+   oBq := HBrwTable():New( oDb:dbHandle, oDb:aTables[nTable,1], oBrw2 )
    aFlds := oBq:aFlds
    oBq:ReadFirst()
 
@@ -486,7 +486,7 @@ STATIC FUNCTION QueExecute( oEdit )
             NEXT
             oBrw2:Refresh()
          ENDIF
-         oSayNum:SetText( "Rows: " + LTrim( Str(Len(arr ) ) ) )
+         FSayNum( "Rows: " + LTrim( Str(Len(arr ) ) ) )
       ELSE
          hwg_MsgStop( hwg_MsgStop( sqlite3_errmsg(oDb:dbHandle), "Error " + Ltrim(Str(sqlite3_errcode(oDb:dbHandle))) ) )
       ENDIF
@@ -861,7 +861,7 @@ STATIC FUNCTION SetOpt()
 
 STATIC FUNCTION EditRow( lNew )
 
-   LOCAL oDlg, oBtn1, oBtn2, oBtnNull, oBtnSave, oLine, oDlgPreview, oEditPreview
+   LOCAL oDlg, oBtn1, oBtn2, oBtnNull, oBtnIT, oBtnIB, oBtnE, oBtnSave, oLine, oDlgPreview, oEditPreview
    LOCAL lSavePreview := .F., aCtrl, nControls, nSel := 0, nFirst := 1, cQ
    LOCAL i, af, nCCount, aData, nTable := oBrw2:cargo, stmt
    LOCAL at := { "integer", "real", "text", "blob", "null", "" }
@@ -869,9 +869,45 @@ STATIC FUNCTION EditRow( lNew )
       LOCAL n
       IF nSel > 0
          n := nFirst + nSel -1
-         aCtrl[n,3]:SetText( "(NULL)" )
+         aCtrl[n,3]:SetText( cNull )
          aData[n,2] := SQLITE_NULL
+         aData[n,3] := .T.
          aCtrl[n,2]:SetText( "("+at[aData[n,2]]+")" )
+      ENDIF
+      RETURN Nil
+   }
+   LOCAL bGetText := {||
+      LOCAL n, cFile
+      IF !Empty( cFile := hwg_Selectfile( "( *.* )", "*.*", CurDir() ) )
+         n := nFirst + nSel - 1
+         aData[n,1] := hb_Memoread( cFile )
+         aData[n,2] := SQLITE_TEXT
+         aData[n,3] := .T.
+         aCtrl[n,2]:SetText( "("+at[SQLITE_TEXT]+")" )
+         aCtrl[n,3]:SetText( aData[n,1] )
+      ENDIF
+      RETURN Nil
+   }
+   LOCAL bGetBlob := {||
+      LOCAL n, cFile
+      IF !Empty( cFile := hwg_Selectfile( "( *.* )", "*.*", CurDir() ) )
+         n := nFirst + nSel - 1
+         aData[n,4] := hb_Memoread( cFile )
+         aData[n,2] := SQLITE_BLOB
+         aData[n,3] := .T.
+         aCtrl[n,2]:SetText( aData[n,1] := "("+UPPER(at[SQLITE_BLOB])+")" )
+      ENDIF
+      RETURN Nil
+   }
+   LOCAL bPut := {||
+      LOCAL cFile
+#ifdef __PLATFORM__UNIX
+      cFile := hwg_Selectfile( "( *.* )", "*.*", CurDir() )
+#else
+      cFile := hwg_Savefile( "*.*", "( *.* )", "*.*", CurDir() )
+#endif
+      IF !Empty( cFile )
+         hb_Memowrit( cFile, aData[nFirst+nSel-1,1] )
       ENDIF
       RETURN Nil
    }
@@ -886,20 +922,30 @@ STATIC FUNCTION EditRow( lNew )
             aData[n,1] := s
             aData[n,3] := .T.
          ENDIF
+      ELSE
+         hwg_Enablewindow( oBtnIT:handle, .T. )
+         hwg_Enablewindow( oBtnIB:handle, .T. )
+         hwg_Enablewindow( oBtnE:handle, .T. )
       ENDIF
       nSel := oEdit:cargo
       n := nFirst + nSel -1
       aCtrl[nSel,1]:SetText( af[n,1]+" >" )
       aCtrl[nSel,1]:SetColor( CLR_GREEN,,.T. )
       aCtrl[nSel,2]:SetColor( CLR_GREEN,,.T. )
-      hwg_Enablewindow( oBtnNull:handle, !af[n,4] )
+      hwg_Enablewindow( oBtnNull:handle, !af[n,4] .AND. aData[n,2] != SQLITE_NULL )
       RETURN Nil
    }
    LOCAL bButtons := {|o,l|
       hwg_Enablewindow( oBtn1:handle, (nFirst > 1) )
       hwg_Enablewindow( oBtn2:handle, (nCCount-nFirst+1 > nControls) )
-      IF Empty( l ) .AND. ( oDb:lRdOnly .OR. oBrw2:cargo == 0 )
-         hwg_Enablewindow( oBtnSave:handle, .F. )
+      IF Empty( l ) 
+         hwg_Enablewindow( oBtnNull:handle, .F. )
+         hwg_Enablewindow( oBtnIT:handle, .F. )
+         hwg_Enablewindow( oBtnIB:handle, .F. )
+         hwg_Enablewindow( oBtnE:handle, .F. )
+         IF oDb:lRdOnly .OR. oBrw2:cargo == 0
+            hwg_Enablewindow( oBtnSave:handle, .F. )
+         ENDIF
       ENDIF
       RETURN Nil
    }
@@ -1000,14 +1046,14 @@ STATIC FUNCTION EditRow( lNew )
          ENDIF
       ENDIF
       FOR i1 := 1 TO nCCount
-         IF !Empty( aData[i1,3] ) .AND. aData[i1,2] != 4
-            IF aData[i1,2] < 3
+         IF !Empty( aData[i1,3] )
+            IF aData[i1,2] == SQLITE_INTEGER .OR. aData[i1,2] == SQLITE_FLOAT
                cVal := aData[i1,1]
-            ELSEIF aData[i1,2] == 3 .OR. aData[i1,2] == 6
+            ELSEIF aData[i1,2] == SQLITE_TEXT .OR. aData[i1,2] == 6
                cVal := "'" + aData[i1,1] + "'"
-            ELSEIF aData[i1,2] == 4
-               //cVal := "x'" + aData[i1,1] + "'"
-            ELSEIF aData[i1,2] == 5
+            ELSEIF aData[i1,2] == SQLITE_BLOB
+               cVal := "x'" + Blob2Hex( aData[i1,4] ) + "'"
+            ELSEIF aData[i1,2] == SQLITE_NULL .AND. aData[i1,1] == cNull
                cVal := "NULL"
             ENDIF
             IF lNew
@@ -1063,7 +1109,7 @@ STATIC FUNCTION EditRow( lNew )
    }
 
    af := GetTblStru( oDb:aTables[nTable,2] )
-   aData := Array( nCCount := Len( af ),3 )
+   aData := Array( nCCount := Len( af ),4 )
    IF lNew
       FOR i := 1 TO nCCount
          aData[i,1] := ""
@@ -1078,13 +1124,14 @@ STATIC FUNCTION EditRow( lNew )
          FOR i := 1 TO nCCount
             aData[i,2] := sqlite3_column_type( stmt, i )
             IF aData[i,2] == SQLITE_BLOB
+               aData[i,4] := sqlite3_column_text( stmt, i )
                aData[i,1] := "(BLOB)"
             ELSEIF aData[i,2] == SQLITE_INTEGER
                aData[i,1] := Ltrim( Str( sqlite3_column_int( stmt, i ) ) )
             ELSEIF aData[i,2] == SQLITE_FLOAT
                aData[i,1] := Ltrim( Str( sqlite3_column_double( stmt, i ) ) )
             ELSEIF aData[i,2] == SQLITE_NULL
-               aData[i,1] := "(NULL)"
+               aData[i,1] := cNull
             ELSEIF aData[i,2] == SQLITE_TEXT
                aData[i,1] := sqlite3_column_text( stmt, i )
             ENDIF
@@ -1104,6 +1151,11 @@ STATIC FUNCTION EditRow( lNew )
    @ 32, 4 BUTTON oBtn2 CAPTION ">" SIZE 28, 28 TOOLTIP "Page Down" ON CLICK bNext
    @ 64, 2 LINE LENGTH 32 VERTICAL
    @ 68, 4 BUTTON oBtnNull CAPTION "U" SIZE 28, 28 TOOLTIP "Set NULL" ON CLICK bSetNull
+   @ 100,2 LINE LENGTH 32 VERTICAL
+   @ 104,4 BUTTON oBtnIT CAPTION "Get text" SIZE 100, 28 TOOLTIP "Import as text" ON CLICK bGetText
+   @ 204,4 BUTTON oBtnIB CAPTION "Get blob" SIZE 100, 28 TOOLTIP "Import as blob" ON CLICK bGetBlob
+   @ 308,2 LINE LENGTH 32 VERTICAL
+   @ 312,4 BUTTON oBtnE CAPTION "Put" SIZE 50, 28 TOOLTIP "Import as text" ON CLICK bPut
 
    @ 4, 36 LINE LENGTH 582 ON SIZE ANCHOR_TOPABS + ANCHOR_LEFTABS + ANCHOR_RIGHTABS
    @ 4, 440 LINE oLine LENGTH 582 ON SIZE ANCHOR_BOTTOMABS + ANCHOR_LEFTABS + ANCHOR_RIGHTABS
@@ -1301,6 +1353,13 @@ STATIC FUNCTION MenuEnable( arr, lEnable )
 
    RETURN Nil
 
+FUNCTION FSayNum( cText )
+
+   oSayNum:SetText( PAdr( cText, 16 ) )
+   hwg_Redrawwindow( oPanel:handle, RDW_ERASE + RDW_INVALIDATE + RDW_INTERNALPAINT + RDW_UPDATENOW )
+
+   RETURN Nil
+
 FUNCTION SetHili( oEdit )
 
    LOCAL oHiliMod
@@ -1386,7 +1445,7 @@ FUNCTION sqlGetField( stmt, i )
       value := Ltrim( Str( sqlite3_column_double( stmt, i ) ) )
       EXIT
    CASE SQLITE_NULL
-      value := "(NULL)"
+      value := cNull
       EXIT
    CASE SQLITE_TEXT
       value := sqlite3_column_text( stmt, i )

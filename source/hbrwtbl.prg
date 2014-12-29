@@ -17,7 +17,7 @@ Memvar nLimitText
 
 CLASS HBrwTable
 
-   DATA oBrw, oSayNum
+   DATA oBrw
    DATA DbHandle
    DATA nQueLimit  INIT 192
    DATA nQueStep   INIT 64
@@ -32,7 +32,7 @@ CLASS HBrwTable
    DATA nIdMaxR, nIdMinR
    DATA nRows      INIT 0
 
-   METHOD New( dbHandle, cTblName, oBrw, oSayNum )
+   METHOD New( dbHandle, cTblName, oBrw )
 
    METHOD ReadFirst()
    METHOD ReadLast()
@@ -55,7 +55,7 @@ CLASS HBrwTable
 
 ENDCLASS
 
-METHOD New( dbHandle, cTblName, oBrw, oSayNum ) CLASS HBrwTable
+METHOD New( dbHandle, cTblName, oBrw ) CLASS HBrwTable
 
    LOCAL stmt, cQ, i, aFlds, nCCount, arr
 
@@ -70,7 +70,6 @@ METHOD New( dbHandle, cTblName, oBrw, oSayNum ) CLASS HBrwTable
    ::lRowid  := !( "without" $ ::cTblSQL )
    ::cTblPK  := GetTblPK( ::cTblSQL )
 
-   ::oSayNum := oSayNum
    ::oBrw := oBrw
    oBrw:bSkip   := { | o, n | ::Skip( n ) }
    oBrw:bGoTop  := { | o | ::Top() }
@@ -137,7 +136,7 @@ METHOD ReadFirst() CLASS HBrwTable
    ENDIF
 
    ::oBrw:aArray := arr
-   ::oSayNum:SetText( iif( ::nRows > 0, "Rows > " + LTrim(Str(::nRows ) ), "Rows: " + LTrim(Str( - ::nRows ) ) ) )
+   FSayNum( iif( ::nRows > 0, "Rows > " + LTrim(Str(::nRows ) ), "Rows: " + LTrim(Str( - ::nRows ) ) ) )
 
    RETURN Len( arr )
 
@@ -180,7 +179,7 @@ METHOD ReadLast() CLASS HBrwTable
    ::lLast := .T.
 
    ::oBrw:aArray := arr
-   ::oSayNum:SetText( iif( ::nRows > 0, "Rows > " + LTrim(Str(::nRows ) ), "Rows: " + LTrim(Str( - ::nRows ) ) ) )
+   FSayNum( iif( ::nRows > 0, "Rows > " + LTrim(Str(::nRows ) ), "Rows: " + LTrim(Str( - ::nRows ) ) ) )
 
    RETURN Len( arr )
 
@@ -238,7 +237,7 @@ METHOD ReadNext() CLASS HBrwTable
    IF ( ::lLast := ( Len( arr ) < ::nQueStep ) ) .AND. ::nRows > 0
       ::nRows := - ::nRows
    ENDIF
-   ::oSayNum:SetText( iif( ::nRows > 0, "Rows > " + LTrim(Str(::nRows ) ), "Rows: " + LTrim(Str( - ::nRows ) ) ) )
+   FSayNum( iif( ::nRows > 0, "Rows > " + LTrim(Str(::nRows ) ), "Rows: " + LTrim(Str( - ::nRows ) ) ) )
 
    RETURN Len( arr )
 
@@ -292,7 +291,7 @@ METHOD ReadPrev() CLASS HBrwTable
       ::oBrw:nCurrent += nShift
    ENDIF
    ::lFirst := ( Len( arr ) < ::nQueStep )
-   ::oSayNum:SetText( iif( ::nRows > 0, "Rows > " + LTrim(Str(::nRows ) ), "Rows: " + LTrim(Str( - ::nRows ) ) ) )
+   FSayNum( iif( ::nRows > 0, "Rows > " + LTrim(Str(::nRows ) ), "Rows: " + LTrim(Str( - ::nRows ) ) ) )
 
    RETURN Len( arr )
 

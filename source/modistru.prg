@@ -271,7 +271,7 @@ FUNCTION GetTblStru( cQ )
 
 FUNCTION GetTblPK( cQ )
 
-   LOCAL cPK := "", nPos1, nPos2, arr, i, cField
+   LOCAL cPK := "", nPos1, nPos2, arr, i, j, cField
 
    IF Empty( cQ )
       RETURN ""
@@ -292,13 +292,13 @@ FUNCTION GetTblPK( cQ )
             IF cField == "primary"
                IF ( nPos1 := At( '(', arr[i] ) ) > 0 .AND. ( nPos2 := find_z( Substr( arr[i], nPos1 + 1 ),')' ) ) > 0
                   arr := DivByComma( Substr( arr[i], nPos1 + 1, nPos2 - 1 ) )
-                  FOR i := 1 TO Len( arr )
-                     arr[i] := AllTrim(arr[i])
-                     IF ( nPos1 := At( ' ', arr[i] ) ) != 0
-                        arr[i] := Lower( AllTrim(arr[i]) )
-                        cField := Left( arr[i], nPos1-1 )
+                  FOR j := 1 TO Len( arr )
+                     arr[j] := AllTrim(arr[j])
+                     IF ( nPos1 := At( ' ', arr[j] ) ) != 0
+                        arr[j] := Lower( AllTrim(arr[j]) )
+                        cField := Left( arr[j], nPos1-1 )
                      ELSE
-                        cField := arr[i]
+                        cField := arr[j]
                      ENDIF
                      cPK += Iif( Empty(cPK),"","," ) + cField
                   NEXT
