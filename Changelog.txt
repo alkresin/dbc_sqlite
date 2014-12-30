@@ -1,5 +1,10 @@
 /* $Id:  $ */
 
+2014-12-30 18:30 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
+  * source/dbc_sqlite.prg
+    * Few menu accelerators added.
+    * History of queries dialog implemented.
+
 2014-12-29 20:30 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
   * source/dbc_sqlite.prg
     * EditRow(): Import/Export buttons added

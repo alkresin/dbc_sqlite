@@ -17,6 +17,7 @@
 #define HILIGHT_QUOTE   3
 #define HILIGHT_COMM    4
 
+#define  CLR_WHITE   16777215
 #define  CLR_DGREEN   3236352
 #define  CLR_MGREEN   8421440
 #define  CLR_GREEN      32768
@@ -76,9 +77,7 @@ FUNCTION Main( cFile )
    hwg_SetResContainer(  cExePath + Lower(cAppName) + ".bin" )
 
    INIT WINDOW oMainWindow MAIN TITLE "SQLite database manager" ;
-      AT 200, 0 SIZE 800, 450 ;
-      SYSCOLOR COLOR_3DLIGHT + 1 ;
-      FONT oFont
+      AT 200, 0 SIZE 800, 450  SYSCOLOR COLOR_3DLIGHT + 1 FONT oFont
 
    IF Empty( _oFont )
       _oFont := oFont
@@ -87,7 +86,7 @@ FUNCTION Main( cFile )
    MENU OF oMainWindow
       MENU TITLE "&DataBase"
          MENUITEM "&New" ACTION dbNew()
-         MENUITEM "&Open" ACTION dbOpen()
+         MENUITEM "&Open"+Chr(9)+"Ctrl+O" ACTION dbOpen() ACCELERATOR FCONTROL,Asc("O")
          MENU TITLE "&Recent files"
          FOR i := 1 TO Len( _aRecent )
             Hwg_DefineMenuItem( _aRecent[i], 1020 + i, ;
@@ -108,7 +107,7 @@ FUNCTION Main( cFile )
       ENDMENU
       MENU TITLE "&Table" ID MITEM_TABLE
          MENUITEM "&New" ACTION tblNew()
-         MENUITEM "&View structure" ACTION tblUpd( oBrw1:nCurrent )
+         MENUITEM "&View structure"+Chr(9)+"Ctrl+S" ACTION tblUpd( oBrw1:nCurrent ) ACCELERATOR FCONTROL,Asc("S")
          MENUITEM "&Delete" ACTION tblDrop( oBrw1:nCurrent )
          SEPARATOR
          MENUITEM "&Table info" ACTION tblInfo( oBrw1:nCurrent )
@@ -118,8 +117,8 @@ FUNCTION Main( cFile )
          MENUITEM "&Export table" ACTION tblExport( oDb, oBrw1:nCurrent )
       ENDMENU
       MENU TITLE "&SQL query" ID MITEM_SQL
-         MENUITEM "&Execute" ACTION QueExecute( oEditQ )
-         MENUITEM "&History" ACTION QueHistory( oEditQ )
+         MENUITEM "&Execute"+Chr(9)+"Ctrl+E" ACTION QueExecute( oEditQ ) ACCELERATOR FCONTROL,Asc("E")
+         MENUITEM "&History"+Chr(9)+"Ctrl+H" ACTION QueHistory( oEditQ ) ACCELERATOR FCONTROL,Asc("H")
          SEPARATOR
          MENUITEM "&Load" ACTION QueLoad( oEditQ )
          MENUITEM "&Save" ACTION QueSave( oEditQ )
@@ -409,7 +408,6 @@ STATIC FUNCTION ShowTable( nTable )
 
    oBq := HBrwTable():New( oDb:dbHandle, oDb:aTables[nTable,1], oBrw2 )
    aFlds := oBq:aFlds
-   oBq:ReadFirst()
 
    oBrw2:aColumns := {}
    FOR i := 1 TO Len( aFlds )
@@ -419,6 +417,8 @@ STATIC FUNCTION ShowTable( nTable )
          oBrw2:AddColumn( HColumn():New( aFlds[i,1],{ |v,o,n|o:aArray[o:nCurrent,n] },"C",Max(aFlds[i,2],Len(aFlds[i,1])) + 4,0 ) )
       ENDIF
    NEXT
+
+   oBq:ReadFirst()
    oBrw2:Refresh()
    hwg_Setfocus( oBrw2:handle )
 
@@ -504,6 +504,127 @@ STATIC FUNCTION QueExecute( oEdit )
    RETURN Nil
 
 STATIC FUNCTION QueHistory( oEdit )
+
+   LOCAL oDlg, oBtn1, oBtn2, oLine, oBtnSele
+   LOCAL aCtrl, nControls, nSel := 0, nFirst := 1, cQ
+   LOCAL i, aData
+   LOCAL bFocus := {|o,id|
+      LOCAL oEdit := o:FindControl(id), n, s
+      IF nSel > 0
+         n := nFirst + nSel - 1
+         aCtrl[nSel]:SetColor( ,CLR_LIGHT1,.T. )
+      ENDIF
+      nSel := oEdit:cargo
+      n := nFirst + nSel - 1
+      aCtrl[nSel]:SetColor( ,CLR_WHITE,.T. )
+      hwg_Enablewindow( oBtnSele:handle, .T. )
+      RETURN Nil
+   }
+   LOCAL bButtons := {|o,l|
+      hwg_Enablewindow( oBtn1:handle, (nFirst > 1) )
+      hwg_Enablewindow( oBtn2:handle, (Len(aData)-nFirst+1 > nControls) )
+      hwg_Enablewindow( oBtnSele:handle, (nSel > 0) )
+      RETURN Nil
+   }
+   LOCAL bCreate := {|i1|
+      LOCAL j1 := nFirst + i1 -1
+      @ 10,10 + (i1-1)*56 EDITBOX aCtrl[i1] CAPTION aData[j1] SIZE 580,52 STYLE ES_MULTILINE ;
+         BACKCOLOR CLR_LIGHT1 FONT _oFont ON SIZE ANCHOR_LEFTABS + ANCHOR_RIGHTABS ON GETFOCUS bFocus
+      aCtrl[i1]:cargo := i1
+      RETURN Nil
+   }
+   LOCAL bSet := {|i1|
+      LOCAL j1 := nFirst + i1 -1
+      aCtrl[i1]:SetText( aData[j1] )
+      RETURN Nil
+   }
+   LOCAL bResize := {|o,x,y|
+      LOCAL nNew := Min( Len(aData)-nFirst+1, Int( (oLine:nTop-14)/56 ) )
+      IF nNew != nControls
+         IF nNew < nControls
+            FOR i := Max( nNew+1,2 ) TO nControls
+               aCtrl[i]:Hide()
+            NEXT
+         ELSEIF nNew > nControls
+            IF nNew > Len( aCtrl )
+               ASize( aCtrl, nNew )
+            ENDIF
+            FOR i := nControls+1 TO nNew
+               IF Empty( aCtrl[i] )
+                  Eval( bCreate, i )
+               ELSE
+                  aCtrl[i]:Show()
+                  Eval( bSet, i )
+               ENDIF
+            NEXT
+         ENDIF
+         nControls := nNew
+         Eval( bButtons, oDlg, .T. )
+      ENDIF
+      RETURN .T.
+   }
+   LOCAL bNext := {||
+      LOCAL i1, j1
+      nFirst += nControls
+      FOR i1 := 1 TO nControls
+         IF ( j1 := ( nFirst + i1 -1 ) ) <= Len(aData)
+            Eval( bSet, i1 )
+         ELSE
+            aCtrl[i1]:Hide()
+         ENDIF
+      NEXT
+      Eval( bButtons, oDlg, .T. )
+      RETURN Nil
+   }
+   LOCAL bPrev := {||
+      LOCAL i1
+      nFirst -= nControls
+      IF nFirst < 1
+         nFirst := 1
+      ENDIF
+      FOR i1 := 1 TO nControls
+         IF aCtrl[i1]:lHide
+            aCtrl[i1]:Show()
+         ENDIF
+         Eval( bSet, i1 )
+      NEXT
+      IF Min( Len(aData)-nFirst+1, Int( (oLine:nTop-14)/56 ) ) < nControls
+         Eval( bButtons, oDlg, .T. )
+      ENDIF
+      Eval( bResize, oDlg, 0, oDlg:nHeight )
+      RETURN Nil
+   }
+   LOCAL bSele := {||
+      oEditQ:SetText( aData[nFirst+nSel-1] )
+      hwg_EndDialog()
+      RETURN Nil
+   }
+
+   IF Empty( _aHistory )
+      ReadHistory( cExePath )
+   ENDIF
+   aData := Iif( ( i := Ascan( _aHistory, {|a|a[1]==oDb:cdbName} ) ) == 0, {}, _aHistory[i,2] )
+
+   INIT DIALOG oDlg TITLE "History" ;
+      AT 0, 0 SIZE 600, 480 FONT HWindow():GetMain():oFont ;
+      ON SIZE bResize
+
+   @ 4, 440 LINE oLine LENGTH 582 ON SIZE ANCHOR_BOTTOMABS + ANCHOR_LEFTABS + ANCHOR_RIGHTABS
+
+   @ 80,448 BUTTON oBtnSele CAPTION "Select" SIZE 80, 28 ON CLICK bSele
+   @ 240,448 BUTTON oBtn1 CAPTION "<" SIZE 40, 28 TOOLTIP "Page Up" ON CLICK bPrev
+   @ 320,448 BUTTON oBtn2 CAPTION ">" SIZE 40, 28 TOOLTIP "Page Down" ON CLICK bNext
+   @ 440,448 BUTTON "Close" SIZE 80, 28 ON CLICK {||hwg_EndDialog()}
+
+   nControls := Min( Len(aData), Int( (oLine:nTop-14)/56 ) )
+   aCtrl := Array( nControls )
+
+   FOR i := 1 TO nControls
+      Eval( bCreate, i )
+   NEXT
+
+   ACTIVATE DIALOG oDlg ON ACTIVATE bButtons
+
    RETURN Nil
 
 STATIC FUNCTION QueLoad( oEdit )
@@ -918,6 +1039,7 @@ STATIC FUNCTION EditRow( lNew )
          aCtrl[nSel,1]:SetText( af[n,1]+"  " )
          aCtrl[nSel,1]:SetColor( 0,,.T. )
          aCtrl[nSel,2]:SetColor( 0,,.T. )
+         aCtrl[nSel,3]:SetColor( ,CLR_LIGHT1,.T. )
          IF !( ( s := aCtrl[nSel,3]:GetText() ) == aData[n,1] )
             aData[n,1] := s
             aData[n,3] := .T.
@@ -932,6 +1054,7 @@ STATIC FUNCTION EditRow( lNew )
       aCtrl[nSel,1]:SetText( af[n,1]+" >" )
       aCtrl[nSel,1]:SetColor( CLR_GREEN,,.T. )
       aCtrl[nSel,2]:SetColor( CLR_GREEN,,.T. )
+      aCtrl[nSel,3]:SetColor( ,CLR_WHITE,.T. )
       hwg_Enablewindow( oBtnNull:handle, !af[n,4] .AND. aData[n,2] != SQLITE_NULL )
       RETURN Nil
    }
@@ -955,7 +1078,7 @@ STATIC FUNCTION EditRow( lNew )
       @ 10, 40 + (i1-1)*56 SAY aCtrl[i1,1] CAPTION af[j1,1]+"  " SIZE 110,24 STYLE SS_RIGHT
       @ 10, 64 + (i1-1)*56 SAY aCtrl[i1,2] CAPTION "("+at[aData[j1,2]]+")" SIZE 110, 24 STYLE SS_RIGHT
       @ 120,40 + (i1-1)*56 EDITBOX aCtrl[i1,3] CAPTION aData[j1,1] SIZE 470,52 STYLE ES_MULTILINE ;
-         FONT _oFont ON SIZE ANCHOR_LEFTABS + ANCHOR_RIGHTABS ON GETFOCUS bFocus
+         BACKCOLOR CLR_LIGHT1 FONT _oFont ON SIZE ANCHOR_LEFTABS + ANCHOR_RIGHTABS ON GETFOCUS bFocus
       aCtrl[i1,3]:cargo := i1
       RETURN Nil
    }

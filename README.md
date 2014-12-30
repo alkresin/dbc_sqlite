@@ -24,12 +24,12 @@ support of some new sqlite features. For example, they didn't open databases, wh
    And, at least, I want to have a possibility to add any feature when I will need it.
 
 ### Installation notes
-Windows:
+#### Windows:
 
 Bldhwg.bat is provided to build dbc_sqlite.exe with Borland C compiler.
 
 Unicode version of HwGUI is needed to be possible to view and edit non-latin symbols.
 
-Linux:
+#### Linux:
 
 Use the build.sh to compile dbc_sqlite.
