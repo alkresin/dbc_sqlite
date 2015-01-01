@@ -35,8 +35,7 @@
 #define MITEM_ATTA       1904
 #define MITEM_PACK       1905
 #define MITEM_DUMP       1906
-#define MITEM_TRIGGER    1907
-#define MITEM_VIEW       1908
+#define MITEM_SCHEMA     1907
 
 #define QUE_TEXT_MAX      256
 #define MAX_RECENT_FILES    6
@@ -95,11 +94,10 @@ FUNCTION Main( cFile )
          ENDMENU
          MENUITEM "&Attach" ID MITEM_ATTA ACTION dbAttach()
          MENUITEM "&Pack" ID MITEM_PACK ACTION dbPack()
-         MENUITEM "&Dump" ID MITEM_DUMP ACTION dbDump( oDb )
          SEPARATOR
          MENUITEM "&Pragmas" ID MITEM_PRAGMA ACTION dbPragmas()
-         MENUITEM "&Triggers" ID MITEM_TRIGGER ACTION dbTriggers()
-         MENUITEM "&Views" ID MITEM_VIEW ACTION dbViews()
+         MENUITEM "&Schema" ID MITEM_SCHEMA ACTION dbSchema()
+         MENUITEM "&Dump" ID MITEM_DUMP ACTION dbDump( oDb )
          SEPARATOR
          MENUITEM "&Font" ACTION SetOpt()
          SEPARATOR
@@ -180,7 +178,7 @@ FUNCTION Main( cFile )
    @ 352, 4 BUTTON "New" OF oPanel COLOR CLR_DBLUE SIZE 64, 28 TOOLTIP "Add row"  ON CLICK { ||iif( Empty( oBrw2 ), .T. , EditRow( .T. ) ) }
 
    BtnEnable( .F. )
-   MenuEnable( { MITEM_PRAGMA,MITEM_TABLE,MITEM_SQL,MITEM_ATTA,MITEM_PACK,MITEM_DUMP,MITEM_TRIGGER,MITEM_VIEW }, .F. )
+   MenuEnable( { MITEM_PRAGMA,MITEM_TABLE,MITEM_SQL,MITEM_ATTA,MITEM_PACK,MITEM_DUMP,MITEM_SCHEMA }, .F. )
 
    ACTIVATE WINDOW oMainWindow ON ACTIVATE {|| Iif( !Empty(cFile), dbOpen(cFile), .T. )}
 
@@ -304,7 +302,7 @@ STATIC FUNCTION dbNew()
 
       oBrw1:aArray := {}
       oBrw1:Refresh()
-      MenuEnable( { MITEM_PRAGMA,MITEM_TABLE,MITEM_SQL,MITEM_ATTA,MITEM_PACK,MITEM_DUMP,MITEM_TRIGGER,MITEM_VIEW }, .T. )
+      MenuEnable( { MITEM_PRAGMA,MITEM_TABLE,MITEM_SQL,MITEM_ATTA,MITEM_PACK,MITEM_DUMP,MITEM_SCHEMA }, .T. )
       Add2Recent( cFile )
    ENDIF
 
@@ -351,7 +349,7 @@ FUNCTION dbOpen( cFile )
          oBrw1:aArray := oDb:GetTables()
          oBrw1:Refresh()
          oBrw1:Top()
-         MenuEnable( { MITEM_PRAGMA,MITEM_TABLE,MITEM_SQL,MITEM_ATTA,MITEM_PACK,MITEM_DUMP,MITEM_TRIGGER,MITEM_VIEW }, .T. )
+         MenuEnable( { MITEM_PRAGMA,MITEM_TABLE,MITEM_SQL,MITEM_ATTA,MITEM_PACK,MITEM_DUMP,MITEM_SCHEMA }, .T. )
          Add2Recent( cFile )
       ENDIF
    ENDIF
@@ -359,6 +357,16 @@ FUNCTION dbOpen( cFile )
    RETURN Nil
 
 STATIC FUNCTION dbAttach()
+
+   LOCAL oDlg
+
+   INIT DIALOG oDlg TITLE "Attach database"  ;
+      AT 0, 0 SIZE 600, 280 FONT HWindow():GetMain():oFont
+
+   @ 200, 60 SAY "Not implemented yet." SIZE 200,24 STYLE SS_CENTER
+
+   ACTIVATE DIALOG oDlg
+
    RETURN Nil
 
 STATIC FUNCTION dbPack()
@@ -906,56 +914,51 @@ STATIC FUNCTION dbPragmas()
       ENDIF
    ENDIF
 
-
    RETURN Nil
 
-STATIC FUNCTION dbTriggers()
+STATIC FUNCTION dbSchema()
 
-   LOCAL arr := oDb:GetObjects( "trigger" )
+   LOCAL arr := oDb:GetObjects(), aType := { "All", "Tables", "Indexes", "Triggers", "Views" }, nType := 1, nTypePrev := 1
    LOCAL oDlg, oBrowse
+   LOCAL bType := {||
+      LOCAL i, s
+      IF nTypePrev != nType
+         IF nType == 1
+            oBrowse:aArray := arr
+         ELSE
+            oBrowse:aArray := {}
+            s := Iif( nType==2, "table", Iif( nType==3, "index", Iif( nType==4, "trigger","view" ) ) )
+            FOR i := 1 TO Len(arr)
+               IF arr[i,1] == s
+                  Aadd( oBrowse:aArray, arr[i] )
+               ENDIF
+            NEXT
+         ENDIF
+         nTypePrev := nType
+         oBrowse:Top()
+         oBrowse:Refresh()
+      ENDIF
+      RETURN .T.
+   }
 
-   INIT DIALOG oDlg TITLE "Triggers" ;
-      AT 0, 0 SIZE 500, 280 FONT HWindow():GetMain():oFont
+   ASort( arr,,, {|a1,a2|a1[3]<a2[3]} )
+   INIT DIALOG oDlg TITLE "Schema" ;
+      AT 0, 0 SIZE 500, 340 FONT HWindow():GetMain():oFont
 
-   @ 0, 0 BROWSE oBrowse ARRAY SIZE 500, 220 ON SIZE ANCHOR_LEFTABS + ANCHOR_RIGHTABS + ANCHOR_TOPABS + ANCHOR_BOTTOMABS
+   @ 20, 4 GET COMBOBOX nType ITEMS aType SIZE 120, 24 DISPLAYCOUNT 5 ON CHANGE bType
+   
+   @ 0, 36 BROWSE oBrowse ARRAY SIZE 500, 244 ON SIZE ANCHOR_LEFTABS + ANCHOR_RIGHTABS + ANCHOR_TOPABS + ANCHOR_BOTTOMABS
    oBrowse:tcolor := 0
    oBrowse:bcolor := CLR_LIGHT1
    oBrowse:bcolorSel := oBrowse:htbcolor := CLR_DBLUE
 
    oBrowse:aArray := arr
-   oBrowse:AddColumn( HColumn():New( "Name",{ |v,o|o:aArray[o:nCurrent,1] },"C",20,0 ) )
-   oBrowse:AddColumn( HColumn():New( "Table",{ |v,o|o:aArray[o:nCurrent,2] },"C",20,0 ) )
-   oBrowse:AddColumn( HColumn():New( "SQL",{ |v,o|o:aArray[o:nCurrent,3] },"C",64,0 ) )
+   oBrowse:AddColumn( HColumn():New( "Type",{ |v,o|o:aArray[o:nCurrent,1] },"C",20,0 ) )
+   oBrowse:AddColumn( HColumn():New( "Name",{ |v,o|o:aArray[o:nCurrent,2] },"C",20,0 ) )
+   oBrowse:AddColumn( HColumn():New( "Table",{ |v,o|o:aArray[o:nCurrent,3] },"C",20,0 ) )
+   oBrowse:AddColumn( HColumn():New( "SQL",{ |v,o|o:aArray[o:nCurrent,4] },"C",64,0 ) )
 
-   @ 20, 240 BUTTON "Add" SIZE 80, 30 ON CLICK { ||.t.} ON SIZE ANCHOR_BOTTOMABS + ANCHOR_LEFTABS
-   @ 200, 240 BUTTON "Close" SIZE 100, 30 ON CLICK { ||hwg_EndDialog() } ON SIZE ANCHOR_BOTTOMABS + ANCHOR_RIGHTABS + ANCHOR_LEFTABS
-   @ 400, 240 BUTTON "Delete" SIZE 80, 30 ON CLICK { ||.t.} ON SIZE ANCHOR_BOTTOMABS + ANCHOR_RIGHTABS
-
-   ACTIVATE DIALOG oDlg
-
-   RETURN Nil
-
-STATIC FUNCTION dbViews()
-
-   LOCAL arr := oDb:GetObjects( "view" )
-   LOCAL oDlg, oBrowse
-
-   INIT DIALOG oDlg TITLE "Views" ;
-      AT 0, 0 SIZE 500, 280 FONT HWindow():GetMain():oFont
-
-   @ 0, 0 BROWSE oBrowse ARRAY SIZE 500, 200 ON SIZE ANCHOR_LEFTABS + ANCHOR_RIGHTABS + ANCHOR_TOPABS + ANCHOR_BOTTOMABS
-   oBrowse:tcolor := 0
-   oBrowse:bcolor := CLR_LIGHT1
-   oBrowse:bcolorSel := oBrowse:htbcolor := CLR_DBLUE
-
-   oBrowse:aArray := arr
-   oBrowse:AddColumn( HColumn():New( "Name",{ |v,o|o:aArray[o:nCurrent,1] },"C",20,0 ) )
-   oBrowse:AddColumn( HColumn():New( "Table",{ |v,o|o:aArray[o:nCurrent,2] },"C",20,0 ) )
-   oBrowse:AddColumn( HColumn():New( "SQL",{ |v,o|o:aArray[o:nCurrent,3] },"C",64,0 ) )
-
-   @ 20, 250 BUTTON "Add" SIZE 80, 30 ON CLICK { ||.t.} ON SIZE ANCHOR_BOTTOMABS + ANCHOR_LEFTABS
-   @ 200, 250 BUTTON "Close" SIZE 100, 30 ON CLICK { ||hwg_EndDialog() } ON SIZE ANCHOR_BOTTOMABS + ANCHOR_RIGHTABS + ANCHOR_LEFTABS
-   @ 400, 250 BUTTON "Delete" SIZE 80, 30 ON CLICK { ||.t.} ON SIZE ANCHOR_BOTTOMABS + ANCHOR_RIGHTABS
+   @ 200, 300 BUTTON "Close" SIZE 100, 30 ON CLICK { ||hwg_EndDialog() } ON SIZE ANCHOR_BOTTOMABS + ANCHOR_RIGHTABS + ANCHOR_LEFTABS
 
    ACTIVATE DIALOG oDlg
 
@@ -1374,12 +1377,13 @@ METHOD GetTables() CLASS HSQLT
          AAdd( ::aTables, { arr[i,1], arr[i,2] } )
       ENDIF
    NEXT
+   ASort( ::aTables,,, {|a1,a2|a1[1]<a2[1]} )
 
    Return ::aTables
 
 METHOD GetObjects( cType, cTblName ) CLASS HSQLT
 
-   LOCAL arr
+   LOCAL arr, cWhere := ""
 
    IF !Empty( cTblName )
       IF Empty( ::aTables )
@@ -1389,8 +1393,14 @@ METHOD GetObjects( cType, cTblName ) CLASS HSQLT
          RETURN {}
       ENDIF
    ENDIF
-    
-   arr := sqlite3_get_table( ::dbHandle, "SELECT name,tbl_name,sql FROM sqlite_master WHERE type='" + cType + Iif( Empty(cTblName), "'", "' AND tbl_name='" + cTblName +"'" ) )
+
+   IF !Empty( cType ) .OR. !Empty( cTblName )
+      cWhere := " WHERE "
+      cWhere += Iif( Empty(cType), "", " type='" + cType +"'" )
+      cWhere += Iif( Empty(cTblName), "", Iif( Empty(cType), "", " AND" ) + " tbl_name='" + cTblName +"'" )
+   ENDIF
+   arr := sqlite3_get_table( ::dbHandle, "SELECT " + Iif( Empty(cType),"type,","" ) + ;
+         "name,tbl_name,sql FROM sqlite_master" + cWhere )
 
    ADel( arr, 1 )
    ASize( arr, Len(arr)-1 )

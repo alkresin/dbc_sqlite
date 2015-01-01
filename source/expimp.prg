@@ -17,6 +17,8 @@ FUNCTION tblImport( oDb, nTable )
    INIT DIALOG oDlg TITLE "Import to " + oDb:aTables[nTable,1]  ;
       AT 0, 0 SIZE 600, 480 FONT HWindow():GetMain():oFont
 
+   @ 200, 60 SAY "Not implemented yet." SIZE 200,24 STYLE SS_CENTER
+
    ACTIVATE DIALOG oDlg
 
    RETURN Nil
@@ -27,6 +29,8 @@ FUNCTION tblExport( oDb, nTable )
 
    INIT DIALOG oDlg TITLE "Export from " + oDb:aTables[nTable,1]  ;
       AT 0, 0 SIZE 600, 480 FONT HWindow():GetMain():oFont
+
+   @ 200, 60 SAY "Not implemented yet." SIZE 200,24 STYLE SS_CENTER
 
    ACTIVATE DIALOG oDlg
 

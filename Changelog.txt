@@ -1,5 +1,14 @@
 /* $Id:  $ */
 
+2015-01-01 17:30 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
+  * source/dbc_sqlite.prg
+  * source/expimp.prg
+    * Database schema dialog implemented.
+    * "Not implemented yet" labels are set to import/export/attach
+  * README.md
+  * bldhwg.bat
+  * build.sh
+
 2014-12-30 18:30 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
   * source/dbc_sqlite.prg
     * Few menu accelerators added.

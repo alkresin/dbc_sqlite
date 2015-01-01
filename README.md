@@ -27,9 +27,11 @@ support of some new sqlite features. For example, they didn't open databases, wh
 #### Windows:
 
 Bldhwg.bat is provided to build dbc_sqlite.exe with Borland C compiler.
+You will need to change HRB_DIR and HWGUI_DIR - they should point to your Harbour and HwGUI directories, appropriately.
 
 Unicode version of HwGUI is needed to be possible to view and edit non-latin symbols.
 
 #### Linux:
 
 Use the build.sh to compile dbc_sqlite.
+You will need to change HRB_DIR and HWGUI_DIR - they should point to your Harbour and HwGUI directories, appropriately.
