@@ -1,5 +1,13 @@
 /* $Id:  $ */
 
+2015-01-02 21:55 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
+  * source/dbc_sqlite.prg
+    ! Few fixes in EditRow() and QueHistory()
+    * Version number is set to 0.9
+  * source/modistru.prg
+    * Modify stru controls are disabled, because it is not implemented yet.
+  * build.sh
+
 2015-01-01 17:30 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
   * source/dbc_sqlite.prg
   * source/expimp.prg

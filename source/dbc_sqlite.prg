@@ -10,7 +10,7 @@
 #include "hwgui.ch"
 #include "hxml.ch"
 
-#define APP_VERSION  "0.8"
+#define APP_VERSION  "0.9"
 
 #define HILIGHT_KEYW    1
 #define HILIGHT_FUNC    2
@@ -573,6 +573,10 @@ STATIC FUNCTION QueHistory( oEdit )
    }
    LOCAL bNext := {||
       LOCAL i1, j1
+      IF nSel > 0
+         aCtrl[nSel]:SetColor( ,CLR_LIGHT1,.T. )
+         nSel := 0
+      ENDIF
       nFirst += nControls
       FOR i1 := 1 TO nControls
          IF ( j1 := ( nFirst + i1 -1 ) ) <= Len(aData)
@@ -586,6 +590,10 @@ STATIC FUNCTION QueHistory( oEdit )
    }
    LOCAL bPrev := {||
       LOCAL i1
+      IF nSel > 0
+         aCtrl[nSel]:SetColor( ,CLR_LIGHT1,.T. )
+         nSel := 0
+      ENDIF
       nFirst -= nControls
       IF nFirst < 1
          nFirst := 1
@@ -596,9 +604,7 @@ STATIC FUNCTION QueHistory( oEdit )
          ENDIF
          Eval( bSet, i1 )
       NEXT
-      IF Min( Len(aData)-nFirst+1, Int( (oLine:nTop-14)/56 ) ) < nControls
-         Eval( bButtons, oDlg, .T. )
-      ENDIF
+      Eval( bButtons, oDlg, .T. )
       Eval( bResize, oDlg, 0, oDlg:nHeight )
       RETURN Nil
    }
@@ -993,10 +999,10 @@ STATIC FUNCTION EditRow( lNew )
       LOCAL n
       IF nSel > 0
          n := nFirst + nSel -1
-         aCtrl[n,3]:SetText( cNull )
+         aCtrl[nSel,3]:SetText( cNull )
          aData[n,2] := SQLITE_NULL
          aData[n,3] := .T.
-         aCtrl[n,2]:SetText( "("+at[aData[n,2]]+")" )
+         aCtrl[nSel,2]:SetText( "("+at[aData[n,2]]+")" )
       ENDIF
       RETURN Nil
    }
@@ -1007,8 +1013,8 @@ STATIC FUNCTION EditRow( lNew )
          aData[n,1] := hb_Memoread( cFile )
          aData[n,2] := SQLITE_TEXT
          aData[n,3] := .T.
-         aCtrl[n,2]:SetText( "("+at[SQLITE_TEXT]+")" )
-         aCtrl[n,3]:SetText( aData[n,1] )
+         aCtrl[nSel,2]:SetText( "("+at[SQLITE_TEXT]+")" )
+         aCtrl[nSel,3]:SetText( aData[n,1] )
       ENDIF
       RETURN Nil
    }
@@ -1019,7 +1025,7 @@ STATIC FUNCTION EditRow( lNew )
          aData[n,4] := hb_Memoread( cFile )
          aData[n,2] := SQLITE_BLOB
          aData[n,3] := .T.
-         aCtrl[n,2]:SetText( aData[n,1] := "("+UPPER(at[SQLITE_BLOB])+")" )
+         aCtrl[nSel,2]:SetText( aData[n,1] := "("+UPPER(at[SQLITE_BLOB])+")" )
       ENDIF
       RETURN Nil
    }
@@ -1123,6 +1129,12 @@ STATIC FUNCTION EditRow( lNew )
    }
    LOCAL bNext := {||
       LOCAL i1, j1
+      IF nSel > 0
+         aCtrl[nSel,1]:SetColor( 0,,.T. )
+         aCtrl[nSel,2]:SetColor( 0,,.T. )
+         aCtrl[nSel,3]:SetColor( ,CLR_LIGHT1,.T. )
+         nSel := 0
+      ENDIF
       nFirst += nControls
       FOR i1 := 1 TO nControls
          IF ( j1 := ( nFirst + i1 -1 ) ) <= nCCount
@@ -1138,6 +1150,12 @@ STATIC FUNCTION EditRow( lNew )
    }
    LOCAL bPrev := {||
       LOCAL i1
+      IF nSel > 0
+         aCtrl[nSel,1]:SetColor( 0,,.T. )
+         aCtrl[nSel,2]:SetColor( 0,,.T. )
+         aCtrl[nSel,3]:SetColor( ,CLR_LIGHT1,.T. )
+         nSel := 0
+      ENDIF
       nFirst -= nControls
       IF nFirst < 1
          nFirst := 1
@@ -1150,9 +1168,7 @@ STATIC FUNCTION EditRow( lNew )
          ENDIF
          Eval( bSet, i1 )
       NEXT
-      IF Min( nCCount-nFirst+1, Int( (oLine:nTop-44)/56 ) ) < nControls
-         Eval( bButtons, oDlg, .T. )
-      ENDIF
+      Eval( bButtons, oDlg, .T. )
       Eval( bResize, oDlg, 0, oDlg:nHeight )
       RETURN Nil
    }
@@ -1281,7 +1297,7 @@ STATIC FUNCTION EditRow( lNew )
    @ 104,4 BUTTON oBtnIT CAPTION "Get text" SIZE 100, 28 TOOLTIP "Import as text" ON CLICK bGetText
    @ 204,4 BUTTON oBtnIB CAPTION "Get blob" SIZE 100, 28 TOOLTIP "Import as blob" ON CLICK bGetBlob
    @ 308,2 LINE LENGTH 32 VERTICAL
-   @ 312,4 BUTTON oBtnE CAPTION "Put" SIZE 50, 28 TOOLTIP "Import as text" ON CLICK bPut
+   @ 312,4 BUTTON oBtnE CAPTION "Put" SIZE 50, 28 TOOLTIP "Export" ON CLICK bPut
 
    @ 4, 36 LINE LENGTH 582 ON SIZE ANCHOR_TOPABS + ANCHOR_LEFTABS + ANCHOR_RIGHTABS
    @ 4, 440 LINE oLine LENGTH 582 ON SIZE ANCHOR_BOTTOMABS + ANCHOR_LEFTABS + ANCHOR_RIGHTABS

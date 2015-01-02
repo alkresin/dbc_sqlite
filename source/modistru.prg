@@ -55,7 +55,7 @@ FUNCTION StruMan( oDb, lNew, nTable )
       cTblName := oDb:aTables[nTable,1]
    ENDIF
 
-   INIT DIALOG oDlg TITLE Iif( oDb:lRdOnly, "View structure", Iif( lNew, "Create", "Modify" ) + " table" ) ;
+   INIT DIALOG oDlg TITLE Iif( oDb:lRdOnly .OR. !lNew, "View structure", Iif( lNew, "Create", "Modify" ) + " table" ) ;
       AT 0, 0 SIZE 600, 480 FONT HWindow():GetMain():oFont
 
    @ 10,16 SAY "Table name:" SIZE 120, 24
@@ -82,7 +82,7 @@ FUNCTION StruMan( oDb, lNew, nTable )
    @ 20,290 SAY "Default value:" SIZE 120, 24
    @ 140, 290 GET oGet5 VAR cDef SIZE 200, 24
 
-   IF !oDb:lRdOnly .AND. oDb:lExcl
+   IF !oDb:lRdOnly .AND. oDb:lExcl .AND. lNew
 
       @ 28, 330 BUTTON "Add"     SIZE 80, 30 ON CLICK { ||UpdStru( 1 ) }
       @ 136,330 BUTTON "Insert"  SIZE 80, 30 ON CLICK { ||UpdStru( 2 ) }
