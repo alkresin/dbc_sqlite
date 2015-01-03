@@ -59,7 +59,7 @@ FUNCTION StruMan( oDb, lNew, nTable )
       AT 0, 0 SIZE 600, 480 FONT HWindow():GetMain():oFont
 
    @ 10,16 SAY "Table name:" SIZE 120, 24
-   @ 130, 16 GET oGet0 VAR cTblName SIZE 260, 24
+   @ 130, 16 GET oGet0 VAR cTblName SIZE 260, 24 VALID {||oEdit:SetText(Query_CreateTbl()),.T.}
    @ 10, 50 BROWSE oBrowse ARRAY SIZE 580, 190 ON POSCHANGE bChgPos ON SIZE ANCHOR_LEFTABS + ANCHOR_RIGHTABS
 
    oBrowse:tcolor := 0
@@ -129,9 +129,11 @@ STATIC FUNCTION UpdStru( nOperation )
       ENDIF
       IF nOperation == 1
          AAdd( oBrowse:aArray, { cName, cType, lPk, lNotNull, cDef } )
+         oBrowse:nRecords ++
       ELSE
          IF nOperation == 2
             AAdd( oBrowse:aArray, Nil )
+            oBrowse:nRecords ++
             AIns( oBrowse:aArray, oBrowse:nCurrent )
             oBrowse:aArray[oBrowse:nCurrent] := { "","",.F.,.F.,"" }
          ENDIF
@@ -175,7 +177,7 @@ STATIC FUNCTION DoSave( oDb, lNew )
 STATIC FUNCTION Query_CreateTbl()
    LOCAL cQ := "CREATE TABLE " + oGet0:SetGet() + "("
    LOCAL i
-
+  
    FOR i := 1 TO oBrowse:nRecords
       cQ += Trim( oBrowse:aArray[i,1] )
       IF !Empty( oBrowse:aArray[i,2] )

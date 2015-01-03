@@ -1,5 +1,10 @@
 /* $Id:  $ */
 
+2015-01-03 21:35 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
+  * source/dbc_sqlite.prg
+  * source/modistru.prg
+    ! Few changes for GTK version
+
 2015-01-02 21:55 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
   * source/dbc_sqlite.prg
     ! Few fixes in EditRow() and QueHistory()

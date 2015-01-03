@@ -1042,7 +1042,11 @@ STATIC FUNCTION EditRow( lNew )
       RETURN Nil
    }
    LOCAL bFocus := {|o,id|
+#ifdef __PLATFORM__UNIX
+      LOCAL oEdit := id, n, s
+#else
       LOCAL oEdit := o:FindControl(id), n, s
+#endif
       IF nSel > 0
          n := nFirst + nSel -1
          aCtrl[nSel,1]:SetText( af[n,1]+"  " )
