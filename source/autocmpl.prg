@@ -7,6 +7,7 @@
  * www - http://www.kresin.ru
 */
 
+#include "hbclass.ch"
 #include "hwgui.ch"
 
 Memvar _nAutoC
@@ -94,7 +95,7 @@ FUNCTION AutoDop( oEdit, nKey, nCtrl, nState, oDb )
    ENDIF
 
    IF Empty( aRes )
-      RETURN 0
+      RETURN Iif( _nAutoC==1, 0, -1 )
    ELSEIF Len( aRes ) == 1
       nPos := oEdit:aPointC[1]
       IF _nAutoC == 1
@@ -103,6 +104,10 @@ FUNCTION AutoDop( oEdit, nKey, nCtrl, nState, oDb )
       ELSE
          IF nKey == VK_TAB
          ELSE
+            oEdit:oHili:nLine := oEdit:aPointC[2]
+            oEdit:oHili:nStart := oEdit:aPointC[1]
+            oEdit:oHili:nLength := Len( Substr( aRes[1], nLen+1 ) )
+            oEdit:InsText( oEdit:aPointC, Substr( aRes[1], nLen+1 ) )
          ENDIF
       ENDIF
    ELSE
@@ -142,3 +147,28 @@ STATIC FUNCTION Auto_table( oDb, cCurr )
    ENDIF
 
    RETURN aRes
+
+#define HILIGHT_AUTOC   5
+
+CLASS HilightAC INHERIT Hilight
+
+   DATA nLine, nStart, nLength
+
+   METHOD Do( nLine, lCheck )
+ENDCLASS
+
+METHOD Do( nLine, lCheck ) CLASS HilightAC
+   Local cLine, cBack
+
+   IF !Empty( ::nLine ) .AND. ::nLine == nLine
+      cLine := oEdit:aText[nLine]
+      cBack := Substr( cLine, ::nStart, ::nLength )
+      oEdit:aText[nLine] := Left( cLine, ::nStart-1 ) + Space( ::nLength ) + Substr( cLine, ::nStart + ::nLength )
+   ENDIF
+   ::Super:Do( nLine, lCheck )
+   IF !Empty( cBack )
+      ::AddItem( ::nStart, ::nStart+::nLength-1, HILIGHT_AUTOC )
+      oEdit:aText[nLine] := Left( cLine, ::nStart-1 ) + cBack + Substr( cLine, ::nStart + ::nLength )
+   ENDIF
+
+   RETURN Nil

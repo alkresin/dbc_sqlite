@@ -16,6 +16,7 @@
 #define HILIGHT_FUNC    2
 #define HILIGHT_QUOTE   3
 #define HILIGHT_COMM    4
+#define HILIGHT_AUTOC   5
 
 #define  CLR_WHITE   16777215
 #define  CLR_DGREEN   3236352
@@ -1526,6 +1527,7 @@ FUNCTION SetHili( oEdit )
    oEdit:SetHili( HILIGHT_KEYW, oEdit:oFont:SetFontStyle( .T. ), 8388608, oEdit:bColor )
    oEdit:SetHili( HILIGHT_FUNC, - 1, 8388608, 16777215 )
    oEdit:SetHili( HILIGHT_QUOTE, - 1, 16711680, 16777215 )
+   oEdit:SetHili( HILIGHT_AUTOC, - 1, 8421504, 16777215 )
 
    RETURN Nil
 
