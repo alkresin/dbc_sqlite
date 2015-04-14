@@ -9,7 +9,9 @@
 
 #include "hwgui.ch"
 
-FUNCTION AutoDop( oEdit, nKey, nCtrl, oDb )
+Memvar _nAutoC
+
+FUNCTION AutoDop( oEdit, nKey, nCtrl, nState, oDb )
 
    LOCAL nLine, nPos, cQ, cTemp, cCurr, i, arr, nLen, aRes := {}
    LOCAL aCmd := { "alter", "analyze", "attach", "begin transaction", ;
@@ -19,7 +21,7 @@ FUNCTION AutoDop( oEdit, nKey, nCtrl, oDb )
    LOCAL aCreate := { "index", "table", "trigger", "view", "virtual table" }
    LOCAL aDrop := { "index", "table", "trigger", "view" }
 
-   IF nKey != VK_TAB
+   IF nState == 0 .OR. _nAutoC == 0 .OR. ( _nAutoC == 1 .AND. nKey != VK_TAB )
       RETURN -1
    ENDIF
 
@@ -40,6 +42,17 @@ FUNCTION AutoDop( oEdit, nKey, nCtrl, oDb )
 
    arr := hb_aTokens( Lower( Ltrim( Left( cQ, nPos-1 ) ) ), ' ', .T. )
    cCurr := ATail( arr )
+   IF _nAutoC == 2
+      IF nCtrl <= 4 .AND. nKey >= 65 .AND. nKey <= 122
+         IF Right( cQ,1 ) == " "
+            cCurr := Chr( Lower( nKey ) )
+         ELSE
+            cCurr += Chr( Lower( nKey ) )
+         ENDIF
+      ELSEIF nKey != VK_TAB
+         RETURN -1
+      ENDIF
+   ENDIF
    nLen := Len( cCurr )
 
    IF Len( arr ) == 1
@@ -84,8 +97,15 @@ FUNCTION AutoDop( oEdit, nKey, nCtrl, oDb )
       RETURN 0
    ELSEIF Len( aRes ) == 1
       nPos := oEdit:aPointC[1]
-      oEdit:InsText( { nPos-nLen,nLine }, Left( aRes[1], nLen ), .T. )
-      oEdit:InsText( oEdit:aPointC, Substr( aRes[1], nLen+1 ) )
+      IF _nAutoC == 1
+         oEdit:InsText( { nPos-nLen,nLine }, Left( aRes[1], nLen ), .T. )
+         oEdit:InsText( oEdit:aPointC, Substr( aRes[1], nLen+1 ) )
+      ELSE
+         IF nKey == VK_TAB
+         ELSE
+         ENDIF
+      ENDIF
+   ELSE
    ENDIF
    
    RETURN 0

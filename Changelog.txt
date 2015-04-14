@@ -1,5 +1,10 @@
 /* $Id:  $ */
 
+2015-04-14 16:15 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
+  * source/dbc_sqlite.prg
+  * source/autocmpl.prg
+    * Beginning of a new implementation of autocompletition 
+
 2015-01-03 21:35 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
   * source/dbc_sqlite.prg
   * source/modistru.prg

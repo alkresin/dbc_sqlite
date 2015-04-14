@@ -51,7 +51,7 @@ REQUEST HB_CODEPAGE_UTF8
 
 STATIC cAppName := "dbc_SQLite", cExePath, cNull := "(NULL)"
 STATIC cCurrPath := "", oEditQ, oPanel, oSayNum, oBtnEd, oBrw1, oBrw2, oDb, oBq
-Memvar _lOptChg, _oFont, _lExcl, _lRd, _aRecent, _lHisChg, _aHistory, nLimitText
+Memvar _lOptChg, _oFont, _lExcl, _lRd, _aRecent, _lHisChg, _aHistory, _nAutoC, nLimitText
 
 FUNCTION Main( cFile )
 
@@ -62,7 +62,7 @@ FUNCTION Main( cFile )
    LOCAL oFont := HFont():Add( "MS Sans Serif", 0, - 17 )
 #endif
    LOCAL oSplitV, oSplitH, oBtn, i
-   PUBLIC _lOptChg := .F., _oFont, _lExcl := .T., _lRd := .T., _aRecent := {}, _lHisChg := .F., _aHistory := {}
+   PUBLIC _lOptChg := .F., _oFont, _lExcl := .T., _lRd := .T., _aRecent := {}, _lHisChg := .F., _aHistory := {}, _nAutoC := 1
    PUBLIC nLimitText
 
    cExePath := FilePath( hb_ArgV( 0 ) )
@@ -150,7 +150,7 @@ FUNCTION Main( cFile )
 
    oEditQ := HCEdit():New( ,,, 214, 10, 106, 50, _oFont,, { |o, x, y|o:Move( ,,x - oSplitV:nLeft - oSplitV:nWidth - 50 ) } )
    SetHili( oEditQ )
-   oEditQ:bKeyDown := {|o,nKey,nCtrl|AutoDop(o,nKey,nCtrl,oDb)}
+   oEditQ:bKeyDown := {|o,nKey,nCtrl,n|AutoDop(o,nKey,nCtrl,n,oDb)}
 
    @ 214, 65 PANEL oPanel SIZE 206, 378 ;
       ON SIZE { |o, x, y|o:Move( , , x - oSplitV:nLeft - oSplitV:nWidth - 10, y - 72 ) }
@@ -204,6 +204,8 @@ STATIC FUNCTION ReadIni( cPath )
          ELSEIF oNode:title == "db_open_mode"
             _lExcl := oNode:GetAttribute( "exclusive", "L", .T. )
             _lRd := oNode:GetAttribute( "readonly", "L", .T. )
+         ELSEIF oNode:title == "autoc"
+            _nAutoC := oNode:GetAttribute( "mode", "N", 1 )
          ELSEIF oNode:title == "recent"
             FOR j := 1 TO Min( Len( oNode:aItems ), MAX_RECENT_FILES )
                Aadd( _aRecent, Trim( oNode:aItems[j]:GetAttribute("name") ) )
