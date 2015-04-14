@@ -22,6 +22,7 @@ FUNCTION AutoDop( oEdit, nKey, nCtrl, nState, oDb )
    LOCAL aCreate := { "index", "table", "trigger", "view", "virtual table" }
    LOCAL aDrop := { "index", "table", "trigger", "view" }
 
+   hwg_writelog( "auto-1 "+str(_nAutoC)+" "+str(nstate) )
    IF nState == 0 .OR. _nAutoC == 0 .OR. ( _nAutoC == 1 .AND. nKey != VK_TAB )
       RETURN -1
    ENDIF
@@ -37,7 +38,7 @@ FUNCTION AutoDop( oEdit, nKey, nCtrl, nState, oDb )
       ENDIF
    NEXT
 
-   IF !Empty( Substr(cQ,nPos,1) ) .OR. Empty( Substr(cQ,nPos-1,1) )
+   IF !Empty( Substr(cQ,nPos,1) ) .OR. ( _nAutoC == 1 .AND. Empty( Substr(cQ,nPos-1,1) ) )
       RETURN 0
    ENDIF
 
@@ -46,15 +47,16 @@ FUNCTION AutoDop( oEdit, nKey, nCtrl, nState, oDb )
    IF _nAutoC == 2
       IF nCtrl <= 4 .AND. nKey >= 65 .AND. nKey <= 122
          IF Right( cQ,1 ) == " "
-            cCurr := Chr( Lower( nKey ) )
+            cCurr := Lower( Chr( nKey ) )
          ELSE
-            cCurr += Chr( Lower( nKey ) )
+            cCurr += Lower( Chr( nKey ) )
          ENDIF
       ELSEIF nKey != VK_TAB
          RETURN -1
       ENDIF
    ENDIF
    nLen := Len( cCurr )
+   hwg_writelog( "auto-2 "+ccurr )
 
    IF Len( arr ) == 1
       aRes := Auto_keyw( aCmd, cCurr )
@@ -94,6 +96,7 @@ FUNCTION AutoDop( oEdit, nKey, nCtrl, nState, oDb )
       ENDIF
    ENDIF
 
+   hwg_writelog( "auto-3 "+str(len(ares)) )
    IF Empty( aRes )
       RETURN Iif( _nAutoC==1, 0, -1 )
    ELSEIF Len( aRes ) == 1
@@ -104,7 +107,7 @@ FUNCTION AutoDop( oEdit, nKey, nCtrl, nState, oDb )
       ELSE
          IF nKey == VK_TAB
          ELSE
-            oEdit:oHili:nLine := oEdit:aPointC[2]
+            oEdit:oHili:nL := oEdit:aPointC[2]
             oEdit:oHili:nStart := oEdit:aPointC[1]
             oEdit:oHili:nLength := Len( Substr( aRes[1], nLen+1 ) )
             oEdit:InsText( oEdit:aPointC, Substr( aRes[1], nLen+1 ) )
@@ -152,15 +155,28 @@ STATIC FUNCTION Auto_table( oDb, cCurr )
 
 CLASS HilightAC INHERIT Hilight
 
-   DATA nLine, nStart, nLength
+   DATA nL, nStart, nLength
 
+   METHOD Set( oEdit )
    METHOD Do( nLine, lCheck )
 ENDCLASS
+
+METHOD Set( oEdit ) CLASS HilightAC
+Local oHili := HilightAC():New()
+
+   oHili:cCommands := ::cCommands
+   oHili:cFuncs    := ::cFuncs
+   oHili:cScomm    := ::cScomm
+   oHili:cMcomm1   := ::cMcomm1
+   oHili:cMcomm2   := ::cMcomm2
+   oHili:oEdit     := oEdit
+
+Return oHili
 
 METHOD Do( nLine, lCheck ) CLASS HilightAC
    Local cLine, cBack
 
-   IF !Empty( ::nLine ) .AND. ::nLine == nLine
+   IF !Empty( ::nL ) .AND. ::nL == nLine
       cLine := oEdit:aText[nLine]
       cBack := Substr( cLine, ::nStart, ::nLength )
       oEdit:aText[nLine] := Left( cLine, ::nStart-1 ) + Space( ::nLength ) + Substr( cLine, ::nStart + ::nLength )
