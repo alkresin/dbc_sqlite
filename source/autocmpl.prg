@@ -48,18 +48,19 @@ STATIC FUNCTION onEditChgPos( oEdit, oDb )
 
 FUNCTION onEditLostF( oEdit )
 
-   CleanDopText( oEdit )
+   //CleanDopText( oEdit )
    RETURN Nil
 
 STATIC FUNCTION CleanDopText( oEdit )
 
-   LOCAL i, cTemp
+   LOCAL i, cTemp, oHili := oEdit:oHili
+
    IF !Empty( oHili:nL )
       cTemp := Substr( oEdit:aText[oHili:nL], oHili:nStart, oHili:nLength )
       i := oEdit:nMaxUndo
       oEdit:nMaxUndo := 0
       oEdit:DelText( { oHili:nStart, oHili:nL }, ;
-                     { oHili:nStart+oHili:nLength-1, oHili:nL } )
+                     { oHili:nStart+oHili:nLength, oHili:nL }, .F. )
       oEdit:nMaxUndo := i
       oHili:nL := Nil
    ENDIF
@@ -221,7 +222,7 @@ METHOD Do( oEdit, nLine, lCheck ) CLASS HilightAC
       oEdit:aText[nLine] := Left( cLine, ::nStart-1 ) + Space( ::nLength ) + Substr( cLine, ::nStart + ::nLength )
    ENDIF
    ::Super:Do( oEdit, nLine, lCheck )
-   IF !Empty( cBack )
+   IF cBack != Nil
       ::AddItem( ::nStart, ::nStart+::nLength-1, HILIGHT_AUTOC )
       oEdit:aText[nLine] := Left( cLine, ::nStart-1 ) + cBack + Substr( cLine, ::nStart + ::nLength )
    ENDIF

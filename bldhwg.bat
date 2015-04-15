@@ -2,11 +2,11 @@
 @set HWGUI_DIR=c:\papps\hwgui_uni
 
    if not exist bin md bin
-   %HRB_DIR%\bin\harbour source\dbc_sqlite.prg -n -w -q -b -i%HRB_DIR%\include;%HWGUI_DIR%\include;%HRB_DIR%\contrib\hbsqlit3 %1 >harbour.log 2>harberr.log
+   %HRB_DIR%\bin\harbour source\dbc_sqlite.prg -n -w -q -i%HRB_DIR%\include;%HWGUI_DIR%\include;%HRB_DIR%\contrib\hbsqlit3 %1 >harbour.log 2>harberr.log
    %HRB_DIR%\bin\harbour source\modistru.prg -n -w -q -i%HRB_DIR%\include;%HWGUI_DIR%\include;%HRB_DIR%\contrib\hbsqlit3 %1 >>harbour.log 2>>harberr.log
    %HRB_DIR%\bin\harbour source\hbrwtbl.prg -n -w -q -i%HRB_DIR%\include;%HWGUI_DIR%\include;%HRB_DIR%\contrib\hbsqlit3 %1 >>harbour.log 2>>harberr.log
    %HRB_DIR%\bin\harbour source\expimp.prg -n -w -q -i%HRB_DIR%\include;%HWGUI_DIR%\include;%HRB_DIR%\contrib\hbsqlit3 %1 >>harbour.log 2>>harberr.log
-   %HRB_DIR%\bin\harbour source\autocmpl.prg -n -w -q -b -i%HRB_DIR%\include;%HWGUI_DIR%\include;\%HRB_DIR%\contrib\hbsqlit3 %1 >>harbour.log 2>>harberr.log
+   %HRB_DIR%\bin\harbour source\autocmpl.prg -n -w -q -i%HRB_DIR%\include;%HWGUI_DIR%\include;\%HRB_DIR%\contrib\hbsqlit3 %1 >>harbour.log 2>>harberr.log
 
    bcc32  -c -O2 -tW -M -I%HRB_DIR%\include;%HWGUI_DIR%\include dbc_sqlite.c modistru.c hbrwtbl.c expimp.c autocmpl.c
    echo 1 24 "%HWGUI_DIR%\image\WindowsXP.Manifest" > dbc_sqlite.rc

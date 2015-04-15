@@ -1,5 +1,9 @@
 /* $Id:  $ */
 
+2015-04-15 21:35 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
+  * source/autocmpl.prg
+    ! Fixes
+
 2015-04-15 17:04 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
   * source/dbc_sqlite.prg
   * source/autocmpl.prg
