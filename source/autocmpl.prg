@@ -12,7 +12,60 @@
 
 Memvar _nAutoC
 
-FUNCTION AutoDop( oEdit, nKey, nCtrl, nState, oDb )
+FUNCTION onEditKey( oEdit, nKey, nCtrl, nState, oDb )
+
+   LOCAL nL, cTemp, oHili
+
+   IF nState == 0
+      IF _nAutoC == 1 .AND. nKey == VK_TAB
+         AutoDop( oEdit, oDb )
+         RETURN 0
+      ELSEIF _nAutoC == 2
+         oHili := oEdit:oHili
+         IF !Empty( oHili:nL )
+            nL := oHili:nL
+            cTemp := CleanDopText( oEdit )
+         ENDIF
+         IF nKey == VK_TAB .OR. nKey == VK_RIGHT
+            IF !Empty( cTemp )
+               oEdit:InsText( { oHili:nStart,nL }, cTemp )
+               RETURN 0
+            ENDIF
+         ELSEIF nCtrl <= 4 .AND. nKey >= 65 .AND. nKey <= 122
+            oEdit:bChangePos := {|o| onEditChgPos( o, oDb ) }
+         ENDIF
+      ENDIF
+   ENDIF
+
+   RETURN -1
+
+STATIC FUNCTION onEditChgPos( oEdit, oDb )
+
+   oEdit:bChangePos := Nil
+   AutoDop( oEdit, oDb )
+
+   RETURN Nil
+
+FUNCTION onEditLostF( oEdit )
+
+   CleanDopText( oEdit )
+   RETURN Nil
+
+STATIC FUNCTION CleanDopText( oEdit )
+
+   LOCAL i, cTemp
+   IF !Empty( oHili:nL )
+      cTemp := Substr( oEdit:aText[oHili:nL], oHili:nStart, oHili:nLength )
+      i := oEdit:nMaxUndo
+      oEdit:nMaxUndo := 0
+      oEdit:DelText( { oHili:nStart, oHili:nL }, ;
+                     { oHili:nStart+oHili:nLength-1, oHili:nL } )
+      oEdit:nMaxUndo := i
+      oHili:nL := Nil
+   ENDIF
+   RETURN cTemp
+
+STATIC FUNCTION AutoDop( oEdit, oDb )
 
    LOCAL nLine, nPos, cQ, cTemp, cCurr, i, arr, nLen, aRes := {}
    LOCAL aCmd := { "alter", "analyze", "attach", "begin transaction", ;
@@ -21,11 +74,6 @@ FUNCTION AutoDop( oEdit, nKey, nCtrl, nState, oDb )
       "rollback transaction", "select", "update", "vacuum" }
    LOCAL aCreate := { "index", "table", "trigger", "view", "virtual table" }
    LOCAL aDrop := { "index", "table", "trigger", "view" }
-
-   hwg_writelog( "auto-1 "+str(_nAutoC)+" "+str(nstate) )
-   IF nState == 0 .OR. _nAutoC == 0 .OR. ( _nAutoC == 1 .AND. nKey != VK_TAB )
-      RETURN -1
-   ENDIF
 
    nLine := oEdit:aPointC[2]
    nPos  := oEdit:aPointC[1]
@@ -44,19 +92,7 @@ FUNCTION AutoDop( oEdit, nKey, nCtrl, nState, oDb )
 
    arr := hb_aTokens( Lower( Ltrim( Left( cQ, nPos-1 ) ) ), ' ', .T. )
    cCurr := ATail( arr )
-   IF _nAutoC == 2
-      IF nCtrl <= 4 .AND. nKey >= 65 .AND. nKey <= 122
-         IF Right( cQ,1 ) == " "
-            cCurr := Lower( Chr( nKey ) )
-         ELSE
-            cCurr += Lower( Chr( nKey ) )
-         ENDIF
-      ELSEIF nKey != VK_TAB
-         RETURN -1
-      ENDIF
-   ENDIF
    nLen := Len( cCurr )
-   hwg_writelog( "auto-2 "+ccurr )
 
    IF Len( arr ) == 1
       aRes := Auto_keyw( aCmd, cCurr )
@@ -96,7 +132,6 @@ FUNCTION AutoDop( oEdit, nKey, nCtrl, nState, oDb )
       ENDIF
    ENDIF
 
-   hwg_writelog( "auto-3 "+str(len(ares)) )
    IF Empty( aRes )
       RETURN Iif( _nAutoC==1, 0, -1 )
    ELSEIF Len( aRes ) == 1
@@ -105,13 +140,17 @@ FUNCTION AutoDop( oEdit, nKey, nCtrl, nState, oDb )
          oEdit:InsText( { nPos-nLen,nLine }, Left( aRes[1], nLen ), .T. )
          oEdit:InsText( oEdit:aPointC, Substr( aRes[1], nLen+1 ) )
       ELSE
-         IF nKey == VK_TAB
-         ELSE
-            oEdit:oHili:nL := oEdit:aPointC[2]
-            oEdit:oHili:nStart := oEdit:aPointC[1]
-            oEdit:oHili:nLength := Len( Substr( aRes[1], nLen+1 ) )
-            oEdit:InsText( oEdit:aPointC, Substr( aRes[1], nLen+1 ) )
+         oEdit:oHili:nL := oEdit:aPointC[2]
+         oEdit:oHili:nStart := oEdit:aPointC[1]
+         cTemp := Substr( aRes[1], nLen+1 )
+         IF Right( cCurr,1 ) > 'Z'
+            cTemp := Lower( cTemp )
          ENDIF
+         oEdit:oHili:nLength := Len( cTemp )
+         i := oEdit:nMaxUndo
+         oEdit:nMaxUndo := 0
+         oEdit:InsText( oEdit:aPointC, cTemp,, .F. )
+         oEdit:nMaxUndo := i
       ENDIF
    ELSE
    ENDIF
@@ -173,7 +212,7 @@ Local oHili := HilightAC():New()
 
 Return oHili
 
-METHOD Do( nLine, lCheck ) CLASS HilightAC
+METHOD Do( oEdit, nLine, lCheck ) CLASS HilightAC
    Local cLine, cBack
 
    IF !Empty( ::nL ) .AND. ::nL == nLine
@@ -181,7 +220,7 @@ METHOD Do( nLine, lCheck ) CLASS HilightAC
       cBack := Substr( cLine, ::nStart, ::nLength )
       oEdit:aText[nLine] := Left( cLine, ::nStart-1 ) + Space( ::nLength ) + Substr( cLine, ::nStart + ::nLength )
    ENDIF
-   ::Super:Do( nLine, lCheck )
+   ::Super:Do( oEdit, nLine, lCheck )
    IF !Empty( cBack )
       ::AddItem( ::nStart, ::nStart+::nLength-1, HILIGHT_AUTOC )
       oEdit:aText[nLine] := Left( cLine, ::nStart-1 ) + cBack + Substr( cLine, ::nStart + ::nLength )

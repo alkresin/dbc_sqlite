@@ -151,7 +151,8 @@ FUNCTION Main( cFile )
 
    oEditQ := HCEdit():New( ,,, 214, 10, 106, 50, _oFont,, { |o, x, y|o:Move( ,,x - oSplitV:nLeft - oSplitV:nWidth - 50 ) } )
    SetHili( oEditQ )
-   oEditQ:bKeyDown := {|o,nKey,nCtrl,n|AutoDop(o,nKey,nCtrl,n,oDb)}
+   oEditQ:bKeyDown := {|o,nKey,nCtrl,n|onEditKey(o,nKey,nCtrl,n,oDb)}
+   oEditQ:bLostFocus := {|o|onEditLostF(o)}
 
    @ 214, 65 PANEL oPanel SIZE 206, 378 ;
       ON SIZE { |o, x, y|o:Move( , , x - oSplitV:nLeft - oSplitV:nWidth - 10, y - 72 ) }
@@ -1528,6 +1529,7 @@ FUNCTION SetHili( oEdit )
    oEdit:SetHili( HILIGHT_FUNC, - 1, 8388608, 16777215 )
    oEdit:SetHili( HILIGHT_QUOTE, - 1, 16711680, 16777215 )
    oEdit:SetHili( HILIGHT_AUTOC, - 1, 8421504, 16777215 )
+   oEdit:bColorCur := oEdit:bColor
 
    RETURN Nil
 
