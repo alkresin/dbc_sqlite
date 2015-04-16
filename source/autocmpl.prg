@@ -14,7 +14,7 @@ Memvar _nAutoC
 
 FUNCTION onEditKey( oEdit, nKey, nCtrl, nState, oDb )
 
-   LOCAL nL, cTemp, oHili
+   LOCAL nL, cTemp, oHili, oBrw
 
    IF nState == 0
       IF _nAutoC == 1 .AND. nKey == VK_TAB
@@ -22,16 +22,27 @@ FUNCTION onEditKey( oEdit, nKey, nCtrl, nState, oDb )
          RETURN 0
       ELSEIF _nAutoC == 2
          oHili := oEdit:oHili
-         IF !Empty( oHili:nL )
-            nL := oHili:nL
-            cTemp := CleanDopText( oEdit )
-         ENDIF
+         nL := oHili:nL
+         cTemp := CleanDopText( oEdit )
          IF nKey == VK_TAB .OR. nKey == VK_RIGHT
+            ListClose( oEdit )
             IF !Empty( cTemp )
                oEdit:InsText( { oHili:nStart,nL }, cTemp )
                RETURN 0
             ENDIF
+         ELSEIF nKey == VK_DOWN
+            IF Valtype( oEdit:cargo[2] ) == "O"
+               oEdit:lSetFocus := .F.
+               oEdit:cargo[1] := .T.
+               oBrw := oEdit:cargo[2]:oBrw
+               oBrw:bcolorSel := oBrw:htbColor := 0
+               oBrw:tcolorSel := oBrw:httColor := 16777215
+               oBrw:Refresh()
+               hwg_SetFocus( oBrw:handle )
+               RETURN 0
+            ENDIF
          ELSEIF nCtrl <= 4 .AND. nKey >= 65 .AND. nKey <= 122
+            ListClose( oEdit )
             oEdit:bChangePos := {|o| onEditChgPos( o, oDb ) }
          ENDIF
       ENDIF
@@ -48,7 +59,11 @@ STATIC FUNCTION onEditChgPos( oEdit, oDb )
 
 FUNCTION onEditLostF( oEdit )
 
-   //CleanDopText( oEdit )
+   CleanDopText( oEdit )
+   IF !oEdit:cargo[1]
+      ListClose( oEdit )
+   ENDIF
+   oEdit:cargo[1] := .F.
    RETURN Nil
 
 STATIC FUNCTION CleanDopText( oEdit )
@@ -64,6 +79,7 @@ STATIC FUNCTION CleanDopText( oEdit )
       oEdit:nMaxUndo := i
       oHili:nL := Nil
    ENDIF
+
    RETURN cTemp
 
 STATIC FUNCTION AutoDop( oEdit, oDb )
@@ -105,7 +121,7 @@ STATIC FUNCTION AutoDop( oEdit, oDb )
          aRes := Auto_table( oDb,cCurr )
       ELSEIF Len( arr ) == 4
          IF cCurr = "v"
-            Aadd( aRes, "VALUES ( " )
+            Aadd( aRes, "values ( " )
          ENDIF
       ENDIF
    ELSEIF arr[1] == "delete"
@@ -121,11 +137,11 @@ STATIC FUNCTION AutoDop( oEdit, oDb )
          IF Len( arr ) == 3
             aRes := Auto_table( oDb,cCurr )
             IF Empty( aRes ) .AND. "if" = cCurr
-               Aadd( aRes, "IF EXISTS " )
+               Aadd( aRes, "if exists " )
             ENDIF
          ELSEIF Len( arr ) == 4
             IF arr[Len(arr)-1] == "if" .AND. "exists" = cCurr
-               Aadd( aRes, "EXISTS " )
+               Aadd( aRes, "exists " )
             ENDIF
          ELSEIF ( Len( arr ) == 5 .AND. arr[3] == "if" )
             aRes := Auto_table( oDb,cCurr )
@@ -144,8 +160,8 @@ STATIC FUNCTION AutoDop( oEdit, oDb )
          oEdit:oHili:nL := oEdit:aPointC[2]
          oEdit:oHili:nStart := oEdit:aPointC[1]
          cTemp := Substr( aRes[1], nLen+1 )
-         IF Right( cCurr,1 ) > 'Z'
-            cTemp := Lower( cTemp )
+         IF Right( cCurr,1 ) <= 'Z'
+            cTemp := Upper( cTemp )
          ENDIF
          oEdit:oHili:nLength := Len( cTemp )
          i := oEdit:nMaxUndo
@@ -154,16 +170,89 @@ STATIC FUNCTION AutoDop( oEdit, oDb )
          oEdit:nMaxUndo := i
       ENDIF
    ELSE
+      ListDop( oEdit, aRes )
    ENDIF
    
    RETURN 0
+
+STATIC FUNCTION ListDop( oEdit, aRes )
+
+   LOCAL oDlg, oBrw, nLeft, nTop, nWidth := 0, nHeight := 0, nStyle, nLen := 0
+   LOCAL i, hDC, aSize
+   LOCAL bEnter := {||
+
+      ListClose( oEdit )
+      hwg_Setfocus( oEdit:handle )
+      Return Nil
+   }
+   LOCAL bKeyDown := {|o,key|
+      IF key == VK_SPACE
+         Eval( bEnter )
+      ELSEIF key == VK_ESCAPE
+         ListClose( oEdit )
+         hwg_Setfocus( oEdit:handle )
+      ELSEIF key == VK_UP
+         IF o:nCurrent == 1
+            o:bcolorSel := o:htbColor := o:bColor
+            o:tcolorSel := o:httColor := 8421504
+            o:Refresh()
+            hwg_Setfocus( oEdit:handle )
+            Return .F.
+         ENDIF
+      ENDIF
+      Return .T.
+   }
+
+   hDC := hwg_Getdc( oEdit:handle )
+
+   FOR i := 1 TO Len( aRes )
+      nLen := Max( nLen, Len( aRes[i] ) )
+      aSize := hwg_Gettextsize( hDC, aRes[i] )
+      nWidth := Max( nWidth, aSize[1] )
+      nHeight := Max( nHeight, aSize[2] )
+   NEXT
+   hwg_Releasedc( oEdit:handle, hDC )
+   nHeight := ( nHeight + 4 ) * Len( aRes )
+   nWidth += 20
+
+   nLeft := oEdit:nLeft + hced_GetXCaretPos( oEdit:hEdit )
+   nTop := oEdit:nTop + hced_GetYCaretPos( oEdit:hEdit ) + hced_GetCaretHeight( oEdit:hEdit ) + 4
+   nStyle := WS_POPUP + WS_VISIBLE
+   INIT DIALOG oDlg AT nLeft, nTop ;
+      SIZE nWidth, nHeight STYLE nStyle
+
+   @ 0, 0 BROWSE oBrw ARRAY SIZE nWidth, nHeight NO VSCROLL NOBORDER
+   oBrw:aArray := aRes
+   oBrw:AddColumn( HColumn():New( ,{ |value,o|o:aArray[o:nCurrent] },"C",nLen ) )
+   oBrw:lDispHead := .F.
+   oBrw:bEnter := bEnter
+   oBrw:bKeyDown := bKeyDown
+   oBrw:bcolorSel := oBrw:htbColor := oBrw:bColor := 12058623
+   oBrw:tcolorSel := oBrw:httColor := 8421504
+   oBrw:tcolor := 8421504
+
+   ACTIVATE DIALOG oDlg NOMODAL
+
+   oEdit:cargo[2] := oDlg
+   hwg_Setfocus( oEdit:handle )
+
+   RETURN 0
+
+STATIC FUNCTION ListClose( oEdit )
+
+   IF Valtype( oEdit:cargo[2] ) == "O"
+      oEdit:cargo[2]:Close()
+      oEdit:cargo[2] := Nil
+   ENDIF
+
+   RETURN Nil
 
 STATIC FUNCTION Auto_keyw( arr, cCurr )
 
    LOCAL i := 1, aRes := {}
 
    DO WHILE ( i := Ascan( arr, cCurr, i ) ) != 0
-      Aadd( aRes, Upper(arr[i])+' ' )
+      Aadd( aRes, arr[i]+' ' )
       i ++
    ENDDO
 

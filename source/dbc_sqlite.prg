@@ -153,6 +153,7 @@ FUNCTION Main( cFile )
    SetHili( oEditQ )
    oEditQ:bKeyDown := {|o,nKey,nCtrl,n|onEditKey(o,nKey,nCtrl,n,oDb)}
    oEditQ:bLostFocus := {|o|onEditLostF(o)}
+   oEditQ:cargo := { .F., Nil }
 
    @ 214, 65 PANEL oPanel SIZE 206, 378 ;
       ON SIZE { |o, x, y|o:Move( , , x - oSplitV:nLeft - oSplitV:nWidth - 10, y - 72 ) }
