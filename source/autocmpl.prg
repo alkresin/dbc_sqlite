@@ -24,8 +24,11 @@ FUNCTION onEditKey( oEdit, nKey, nCtrl, nState, oDb )
          oHili := oEdit:oHili
          nL := oHili:nL
          cTemp := CleanDopText( oEdit )
-         IF nKey == VK_TAB .OR. nKey == VK_RIGHT
+         IF nKey != VK_DOWN
             ListClose( oEdit )
+         ENDIF
+         IF nKey == VK_TAB .OR. nKey == VK_RIGHT
+            //ListClose( oEdit )
             IF !Empty( cTemp )
                oEdit:InsText( { oHili:nStart,nL }, cTemp )
                RETURN 0
@@ -42,10 +45,12 @@ FUNCTION onEditKey( oEdit, nKey, nCtrl, nState, oDb )
                RETURN 0
             ENDIF
          ELSEIF nCtrl <= 4 .AND. nKey >= 65 .AND. nKey <= 122
-            ListClose( oEdit )
+            //ListClose( oEdit )
             oEdit:bChangePos := {|o| onEditChgPos( o, oDb ) }
          ENDIF
       ENDIF
+   ELSEIF nState == 1 .AND. _nAutoC == 2 .AND. nKey == VK_TAB
+      RETURN 0
    ENDIF
 
    RETURN -1
@@ -181,7 +186,13 @@ STATIC FUNCTION ListDop( oEdit, aRes )
    LOCAL i, hDC, aSize
    LOCAL bEnter := {||
 
+      LOCAL cCurr := Lower( ATail( hb_aTokens( Ltrim(Left(oEdit:aText[oEdit:aPointC[2]],oEdit:aPointC[1]-1)),' ',.T. ) ) )
+      LOCAL cDop := oBrw:aArray[oBrw:nCurrent]
+
       ListClose( oEdit )
+      IF cCurr == Left( cDop,Len(cCurr) )
+         oEdit:InsText( oEdit:aPointC, Substr( cDop,Len(cCurr)+1 ) )
+      ENDIF
       hwg_Setfocus( oEdit:handle )
       Return Nil
    }

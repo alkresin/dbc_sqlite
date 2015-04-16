@@ -63,7 +63,7 @@ FUNCTION Main( cFile )
    LOCAL oFont := HFont():Add( "MS Sans Serif", 0, - 17 )
 #endif
    LOCAL oSplitV, oSplitH, oBtn, i
-   PUBLIC _lOptChg := .F., _oFont, _lExcl := .T., _lRd := .T., _aRecent := {}, _lHisChg := .F., _aHistory := {}, _nAutoC := 1
+   PUBLIC _lOptChg := .F., _oFont, _lExcl := .T., _lRd := .T., _aRecent := {}, _lHisChg := .F., _aHistory := {}, _nAutoC := 2
    PUBLIC nLimitText
 
    cExePath := FilePath( hb_ArgV( 0 ) )
