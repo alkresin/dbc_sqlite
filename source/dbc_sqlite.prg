@@ -1529,7 +1529,7 @@ FUNCTION SetHili( oEdit )
    oEdit:SetHili( HILIGHT_KEYW, oEdit:oFont:SetFontStyle( .T. ), 8388608, oEdit:bColor )
    oEdit:SetHili( HILIGHT_FUNC, - 1, 8388608, 16777215 )
    oEdit:SetHili( HILIGHT_QUOTE, - 1, 16711680, 16777215 )
-   oEdit:SetHili( HILIGHT_AUTOC, - 1, 8421504, 16777215 )
+   oEdit:SetHili( HILIGHT_AUTOC, - 1, 10197915, 16777215 )
    oEdit:bColorCur := oEdit:bColor
 
    RETURN Nil

@@ -38,8 +38,8 @@ FUNCTION onEditKey( oEdit, nKey, nCtrl, nState, oDb )
                oEdit:lSetFocus := .F.
                oEdit:cargo[1] := .T.
                oBrw := oEdit:cargo[2]:oBrw
-               oBrw:bcolorSel := oBrw:htbColor := 0
-               oBrw:tcolorSel := oBrw:httColor := 16777215
+               oBrw:bcolorSel := oBrw:htbColor := 1242612
+               //oBrw:tcolorSel := oBrw:httColor := 16777215
                oBrw:Refresh()
                hwg_SetFocus( oBrw:handle )
                RETURN 0
@@ -120,6 +120,7 @@ STATIC FUNCTION AutoDop( oEdit, oDb )
       aRes := Auto_keyw( aCmd, cCurr )
    ELSEIF arr[1] == "select"
       IF arr[Len(arr)-1] == "from"
+         aRes := Auto_table( oDb,cCurr )
       ENDIF
    ELSEIF arr[1] == "insert"
       IF Len( arr ) == 3
@@ -205,7 +206,7 @@ STATIC FUNCTION ListDop( oEdit, aRes )
       ELSEIF key == VK_UP
          IF o:nCurrent == 1
             o:bcolorSel := o:htbColor := o:bColor
-            o:tcolorSel := o:httColor := 8421504
+            //o:tcolorSel := o:httColor := 8421504
             o:Refresh()
             hwg_Setfocus( oEdit:handle )
             Return .F.
@@ -239,8 +240,8 @@ STATIC FUNCTION ListDop( oEdit, aRes )
    oBrw:bEnter := bEnter
    oBrw:bKeyDown := bKeyDown
    oBrw:bcolorSel := oBrw:htbColor := oBrw:bColor := 12058623
-   oBrw:tcolorSel := oBrw:httColor := 8421504
-   oBrw:tcolor := 8421504
+   oBrw:tcolorSel := oBrw:httColor := 6316128
+   oBrw:tcolor := 6316128
 
    ACTIVATE DIALOG oDlg NOMODAL
 
