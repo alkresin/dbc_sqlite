@@ -1,5 +1,9 @@
 /* $Id:  $ */
 
+2015-04-24 15:30 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
+  * source/autocmpl.prg
+    * A set of words for autocompletition is extended
+
 2015-04-24 13:46 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
   * source/autocmpl.prg
     * autocompletition works correctly now under both Windows and Linux

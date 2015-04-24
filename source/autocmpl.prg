@@ -254,48 +254,61 @@ METHOD Do( oEdit, nLine, lCheck ) CLASS HilightAC
 
 STATIC FUNCTION getDops( arr, oDb )
    LOCAL aCmd := { "alter", "analyze", "attach", "begin transaction", ;
-      "commit transaction", "create", "delete", "detach", "drop", ;
+      "create", "create index", "create table", "create trigger", "create view", "create virtual table", "create unique index", "create temp", ;
+      "commit transaction", "delete", "detach", "drop", ;
+      "drop index", "drop table", "drop trigger", "drop view", ;
       "end transaction", "insert into", "pragma", "reindex", "replace into", ;
       "rollback transaction", "select", "update", "vacuum" }
-   LOCAL aCreate := { "index", "table", "trigger", "view", "virtual table" }
+   LOCAL aCreate := { "index", "table", "trigger", "view", "virtual table", "unique index", "temp" }
+   LOCAL aTemp := { "table", "trigger", "view" }
    LOCAL aDrop := { "index", "table", "trigger", "view" }
 
-   LOCAL aRes, cCurr := Atail( arr )
+   LOCAL aRes, cCurr := Atail( arr ), nLen := Len( arr )
 
-   IF Len( arr ) == 1
+   IF nLen == 1
       aRes := Auto_keyw( aCmd, cCurr )
    ELSEIF arr[1] == "select"
-      IF arr[Len(arr)-1] == "from"
+      IF arr[nLen-1] == "from"
          aRes := Auto_table( oDb,cCurr )
+      ELSEIF Right( arr[nLen-1],1 ) != ','
+         IF nLen > 2 .AND. "from" = cCurr .AND. Ascan( arr, "from" ) == 0
+            aRes := { "from " }
+         ELSEIF nLen > 4 .AND. "where" = cCurr .AND. Ascan( arr, "where" ) == 0 .AND. Ascan( arr, "from" ) > 0
+            aRes := { "where " }
+         ENDIF
       ENDIF
    ELSEIF arr[1] == "insert"
-      IF Len( arr ) == 3
+      IF nLen == 3
          aRes := Auto_table( oDb,cCurr )
       ELSEIF Len( arr ) == 4
          IF cCurr = "v"
-            Aadd( aRes, "values ( " )
+            aRes := { "values ( " }
          ENDIF
       ENDIF
    ELSEIF arr[1] == "delete"
 
    ELSEIF arr[1] == "create"
-      IF Len( arr ) == 2
+      IF nLen == 2
          aRes := Auto_keyw( aCreate, cCurr )
+      ELSEIF nLen == 3
+         IF arr[2] == "temp"
+            aRes := Auto_keyw( aTemp, cCurr )
+         ENDIF
       ENDIF
    ELSEIF arr[1] == "drop"
-      IF Len( arr ) == 2
+      IF nLen == 2
          aRes := Auto_keyw( aDrop, cCurr )
       ELSEIF arr[2] == "table"
-         IF Len( arr ) == 3
+         IF nLen == 3
             aRes := Auto_table( oDb,cCurr )
             IF Empty( aRes ) .AND. "if" = cCurr
-               Aadd( aRes, "if exists " )
+               aRes := { "if exists " }
             ENDIF
-         ELSEIF Len( arr ) == 4
-            IF arr[Len(arr)-1] == "if" .AND. "exists" = cCurr
-               Aadd( aRes, "exists " )
+         ELSEIF nLen == 4
+            IF arr[nLen-1] == "if" .AND. "exists" = cCurr
+               aRes := { "exists " }
             ENDIF
-         ELSEIF ( Len( arr ) == 5 .AND. arr[3] == "if" )
+         ELSEIF ( nLen == 5 .AND. arr[3] == "if" )
             aRes := Auto_table( oDb,cCurr )
          ENDIF
       ENDIF
