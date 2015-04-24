@@ -1,5 +1,9 @@
 /* $Id:  $ */
 
+2015-04-24 13:46 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
+  * source/autocmpl.prg
+    * autocompletition works correctly now under both Windows and Linux
+
 2015-04-17 15:27 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
   * source/dbc_sqlite.prg
   * source/autocmpl.prg
