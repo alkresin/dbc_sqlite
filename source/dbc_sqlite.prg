@@ -767,7 +767,7 @@ STATIC FUNCTION indexNew( oBrw )
    LOCAL bAdd := {||
       IF Ascan( arr, af[nField,1] ) == 0
          Aadd( arr, af[nField,1] )
-         oEdit:SetText( Query_CreateInd( cIndName, arr ) )
+         oEdit:SetText( Query_CreateInd( oDb:aTables[oBrw:cargo,1], cIndName, arr ) )
       ENDIF
       RETURN Nil
    }
@@ -827,8 +827,8 @@ STATIC FUNCTION indexDrop( oBrw )
 
    RETURN Nil
 
-STATIC FUNCTION Query_CreateInd( cIndName, arr )
-   LOCAL cQ := "CREATE INDEX ON" + cIndName + "("
+STATIC FUNCTION Query_CreateInd( cTableName, cIndName, arr )
+   LOCAL cQ := "CREATE INDEX " + cIndName + " ON " + cTableName + " ("
    LOCAL i
 
    FOR i := 1 TO Len(arr)
