@@ -175,21 +175,23 @@ STATIC FUNCTION DoSave( oDb, lNew )
    RETURN Nil
 
 STATIC FUNCTION Query_CreateTbl()
-   LOCAL cQ := "CREATE TABLE " + oGet0:SetGet() + "("
-   LOCAL i
+   LOCAL cQ := "create table " + oGet0:SetGet() + "("
+   LOCAL i, cType, cDef
   
    FOR i := 1 TO oBrowse:nRecords
       cQ += Trim( oBrowse:aArray[i,1] )
-      IF !Empty( oBrowse:aArray[i,2] )
-         cQ += " " + Upper( Trim( oBrowse:aArray[i,2] ) )
+      IF !Empty( cType := Trim(oBrowse:aArray[i,2]) )
+         cQ += " " + cType
          IF oBrowse:aArray[i,3]
-            cQ += " PRIMARY KEY"
+            cQ += " primary key"
          ENDIF
       ENDIF
       IF oBrowse:aArray[i,4]
-         cQ += " NOT NULL"
+         cQ += " not null"
       ENDIF
-      IF !Empty( oBrowse:aArray[i,4] )
+      IF !Empty( cDef := Trim(oBrowse:aArray[i,5]) )
+         cQ += " default " + Iif( !Empty(cType) .AND. Left(cType,1)=="t", ;
+               "'"+cDef+"'", cDef )
       ENDIF
       IF i != oBrowse:nRecords
          cQ += ","

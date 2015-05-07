@@ -828,7 +828,7 @@ STATIC FUNCTION indexDrop( oBrw )
    RETURN Nil
 
 STATIC FUNCTION Query_CreateInd( cTableName, cIndName, arr )
-   LOCAL cQ := "CREATE INDEX " + cIndName + " ON " + cTableName + " ("
+   LOCAL cQ := "create index " + cIndName + " on " + cTableName + " ("
    LOCAL i
 
    FOR i := 1 TO Len(arr)

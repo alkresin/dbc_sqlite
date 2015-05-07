@@ -1,5 +1,11 @@
 /* $Id:  $ */
 
+2015-05-07 18:48 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
+  * source/dbc_sqlite.prg
+  * source/modistru.prg
+    * 'default' clause added for tables creating
+    * Commands lowercase'd
+
 2015-05-06 13:54 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
   * source/dbc_sqlite.prg
     ! Indexes creating fixed.
