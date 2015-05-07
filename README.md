@@ -35,3 +35,7 @@ Unicode version of HwGUI is needed to be possible to view and edit non-latin sym
 
 Use the build.sh to compile dbc_sqlite.
 You will need to change HRB_DIR and HWGUI_DIR - they should point to your Harbour and HwGUI directories, appropriately.
+
+### Download
+
+Binaries are available for download on my site: http://www.kresin.ru/en/dbc_sqlite.html

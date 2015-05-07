@@ -1,5 +1,10 @@
 /* $Id:  $ */
 
+2015-05-07 20:00 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
+  * source/dbc_sqlite.prg
+    * version changed to 0.92
+  * README.md
+
 2015-05-07 18:48 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
   * source/dbc_sqlite.prg
   * source/modistru.prg

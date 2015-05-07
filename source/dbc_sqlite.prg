@@ -10,7 +10,7 @@
 #include "hwgui.ch"
 #include "hxml.ch"
 
-#define APP_VERSION  "0.9"
+#define APP_VERSION  "0.92"
 
 #define HILIGHT_KEYW    1
 #define HILIGHT_FUNC    2
