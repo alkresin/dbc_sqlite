@@ -150,6 +150,9 @@ FUNCTION Main( cFile )
    oBrw1:bRClick := {|o,n|brw1Menu(o,n,oBrwMenu)}
 
    oEditQ := HCEdit():New( ,,, 214, 10, 106, 50, _oFont,, { |o, x, y|o:Move( ,,x - oSplitV:nLeft - oSplitV:nWidth - 50 ) } )
+   IF hwg__isUnicode()
+      oEditQ:lUtf8 := .T.
+   ENDIF
    SetHili( oEditQ )
    oEditQ:bKeyDown := {|o,nKey,nCtrl,n|onEditKey(o,nKey,nCtrl,n,oDb)}
    oEditQ:bLostFocus := {|o|onEditLostF(o)}

@@ -1,5 +1,9 @@
 /* $Id:  $ */
 
+2015-05-20 15:55 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
+  * source/dbc_sqlite.prg
+    * :lUtf8 flag is set for the query edit control.
+
 2015-05-07 20:00 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
   * source/dbc_sqlite.prg
     * version changed to 0.92
