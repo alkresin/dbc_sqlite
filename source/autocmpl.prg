@@ -185,7 +185,7 @@ STATIC FUNCTION ListDop( oEdit, aRes )
    nTop := oEdit:nTop + hced_GetYCaretPos( oEdit:hEdit ) + hced_GetCaretHeight( oEdit:hEdit ) + 4
    nStyle := WS_POPUP + WS_VISIBLE
 
-   @ nLeft, nTop BROWSE oBrw ARRAY SIZE nWidth, nHeight NO VSCROLL NOBORDER
+   @ nLeft, nTop BROWSE oBrw ARRAY OF oEdit:oParent SIZE nWidth, nHeight NO VSCROLL NOBORDER
 
    oBrw:aArray := aRes
    oBrw:AddColumn( HColumn():New( ,{ |value,o|o:aArray[o:nCurrent] },"C",nLen ) )
