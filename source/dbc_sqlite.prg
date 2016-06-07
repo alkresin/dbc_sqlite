@@ -321,7 +321,12 @@ FUNCTION dbOpen( cFile )
    LOCAL oDlg, oGet
    LOCAL lExcl := _lExcl , lRd := _lRd
    LOCAL bFileBtn := { ||
-   IF Empty( cFile := hwg_Selectfile( "( *.* )", "*.*", cCurrPath ) )
+#ifdef __PLATFORM__UNIX
+      cFile := hwg_SelectfileEx( ,, { { "All files", "*" } } )
+#else
+      cFile := hwg_Selectfile( "( *.* )", "*.*", cCurrPath )
+#endif
+   IF Empty( cFile )
       cFile := ""
    ENDIF
    oGet:Refresh()
