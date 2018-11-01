@@ -1286,7 +1286,7 @@ STATIC FUNCTION EditRow( lNew )
                aData[i,4] := sqlite3_column_text( stmt, i )
                aData[i,1] := "(BLOB)"
             ELSEIF aData[i,2] == SQLITE_INTEGER
-               aData[i,1] := Ltrim( Str( sqlite3_column_int( stmt, i ) ) )
+               aData[i,1] := Ltrim( Str( sqlite3_column_int64( stmt, i ) ) )
             ELSEIF aData[i,2] == SQLITE_FLOAT
                aData[i,1] := Ltrim( Str( sqlite3_column_double( stmt, i ) ) )
             ELSEIF aData[i,2] == SQLITE_NULL
@@ -1607,7 +1607,7 @@ FUNCTION sqlGetField( stmt, i )
       value := "(BLOB)"
       EXIT
    CASE SQLITE_INTEGER
-      value := Ltrim( Str( sqlite3_column_int( stmt, i ) ) )
+      value := Ltrim( Str( sqlite3_column_int64( stmt, i ) ) )
       EXIT
    CASE SQLITE_FLOAT
       value := Ltrim( Str( sqlite3_column_double( stmt, i ) ) )

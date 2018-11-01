@@ -76,7 +76,7 @@ FUNCTION dbDump( oDb )
                   cLine += "x'" + Blob2Hex( sqlite3_column_text( stmt, j ) ) + "'"
                   EXIT
                CASE SQLITE_INTEGER
-                  cLine += Ltrim( Str( sqlite3_column_int( stmt, j ) ) )
+                  cLine += Ltrim( Str( sqlite3_column_int64( stmt, j ) ) )
                   EXIT
                CASE SQLITE_FLOAT
                   cLine += Ltrim( Str( sqlite3_column_double( stmt, j ) ) )

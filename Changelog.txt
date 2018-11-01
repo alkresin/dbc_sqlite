@@ -1,5 +1,10 @@
 /* $Id:  $ */
 
+2018-11-01 22:00 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
+  * source/dbc_sqlite.prg
+  * source/expimp.prg
+    * *_int() functions changed to *_int64()
+
 2016-06-07 20:28 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
   * source/dbc_sqlite.prg
     * hwg_SelectFileEx() instead of hwg_SelectFile() for GTK version.
