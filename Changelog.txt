@@ -1,5 +1,9 @@
 /* $Id:  $ */
 
+2018-11-02 09:40 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
+  * source/dbc_sqlite.prg
+    * Table browse window is cleaned now after opening a database or creating a new one.
+
 2018-11-01 22:00 UTC+0300 Alexander Kresin (alex/at/kresin.ru)
   * source/dbc_sqlite.prg
   * source/expimp.prg

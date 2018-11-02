@@ -310,6 +310,11 @@ STATIC FUNCTION dbNew()
 
       oBrw1:aArray := {}
       oBrw1:Refresh()
+      IF !Empty( oBrw2 )
+         oPanel:DelControl( oBrw2 )
+         oBrw2 := Nil
+         oSayNum:SetText( "" )
+      ENDIF
       MenuEnable( { MITEM_PRAGMA,MITEM_TABLE,MITEM_SQL,MITEM_ATTA,MITEM_PACK,MITEM_DUMP,MITEM_SCHEMA }, .T. )
       Add2Recent( cFile )
    ENDIF
@@ -362,6 +367,11 @@ FUNCTION dbOpen( cFile )
          oBrw1:aArray := oDb:GetTables()
          oBrw1:Refresh()
          oBrw1:Top()
+         IF !Empty( oBrw2 )
+            oPanel:DelControl( oBrw2 )
+            oBrw2 := Nil
+            oSayNum:SetText( "" )
+         ENDIF
          MenuEnable( { MITEM_PRAGMA,MITEM_TABLE,MITEM_SQL,MITEM_ATTA,MITEM_PACK,MITEM_DUMP,MITEM_SCHEMA }, .T. )
          Add2Recent( cFile )
       ENDIF

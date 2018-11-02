@@ -12,7 +12,7 @@
    echo 1 24 "%HWGUI_DIR%\image\WindowsXP.Manifest" > dbc_sqlite.rc
    brc32 -r dbc_sqlite
 
-   ilink32 -Gn -Tpe -aa -L%HRB_DIR%\lib;%HWGUI_DIR%\lib c0w32.obj dbc_sqlite.obj modistru.obj hbrwtbl.obj expimp.obj autocmpl.obj, bin\dbc_sqlite.exe, dbc_sqlite.map, hwgui.lib procmisc.lib hbxml.lib hwgdebug.lib hbdebug.lib hbvm.lib hbrtl.lib gtgui.lib gtwin.lib hblang.lib hbrdd.lib hbmacro.lib hbpp.lib rddntx.lib rddcdx.lib rddfpt.lib hbsix.lib hbcommon.lib hbcpage.lib hbct.lib hbpcre.lib hbcplr.lib sqlite3.lib hbsqlit3.lib ws2_32.lib cw32mt.lib import32.lib,, dbc_sqlite.res
+   ilink32 -Gn -Tpe -aa -L%HRB_DIR%\lib\win\bcc;%HWGUI_DIR%\lib c0w32.obj dbc_sqlite.obj modistru.obj hbrwtbl.obj expimp.obj autocmpl.obj, bin\dbc_sqlite.exe, dbc_sqlite.map, hwgui.lib procmisc.lib hbxml.lib hwgdebug.lib hbdebug.lib hbvm.lib hbrtl.lib gtgui.lib gtwin.lib hblang.lib hbrdd.lib hbmacro.lib hbpp.lib rddntx.lib rddcdx.lib rddfpt.lib hbsix.lib hbcommon.lib hbcpage.lib hbct.lib hbpcre.lib hbcplr.lib sqlite3.lib hbsqlit3.lib ws2_32.lib cw32mt.lib import32.lib,, dbc_sqlite.res
 
    @del *.c
    @del *.obj
